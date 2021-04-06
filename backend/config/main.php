@@ -25,6 +25,14 @@ return [
         'member' => [
             'class' => 'backend\modules\member\Module',
         ],
+        /** ------ 物联网模块 ------ **/
+        'console-iot' => [
+            'class' => 'backend\modules\console\iot\Module',
+        ],
+        /** ------ 项目模块 ------ **/
+        'monitor-project' => [
+            'class' => 'backend\modules\monitor\project\Module',
+        ],
         /** ------ oauth2 ------ **/
         'oauth2' => [
             'class' => 'backend\modules\oauth2\Module',

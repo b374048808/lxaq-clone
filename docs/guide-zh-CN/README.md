@@ -21,7 +21,7 @@
 - [Gii](sys-gii.md)
 - [权限控制](sys-auth.md)
 - [公用支付](sys-payment.md)
-- [消息队列](sys-queue.md)
+- [消息队列](sys-queue.md) 
 - [服务层](sys-service.md)
 - [WebSocket](sys-websocket.md)
 - 公用服务
@@ -56,7 +56,7 @@
 - [小程序登录注册](api-mini-program.md)
 - [文件上传](api-upload.md)
 - [个人信息](api-get-member.md)
-- [支付生成参数](api-pay.md)
+- [支付生成参数](api-pay.md) 
 
 #### OAuth2
 
