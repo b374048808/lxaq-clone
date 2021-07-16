@@ -15,11 +15,15 @@ return [
     // refresh token有效期 默认30天
     'user.refreshTokenExpire' => 30 * 24 * 60 * 60,
     // 签名验证默认关闭验证，如果开启需了解签名生成及验证
-    'user.httpSignValidity' => true,
+    'user.httpSignValidity' => false,
     // 签名授权公钥秘钥
     'user.httpSignAccount' => [
         'doormen' => 'e3de3825cfbf',
     ],
     // 触发格式化返回
     'triggerBeforeSend' => true,
+
+    'noAuthRoute' => [
+        '/v1/site/login'
+    ]
 ];

@@ -27,6 +27,7 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                         <th>#</th>
                         <th>标题</th>
                         <th>户主</th>
+                        <th>备注</th>
                         <th>时间</th>
                         <th>操作</th>
                     </tr>
@@ -37,6 +38,7 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             <td><?= $model->id; ?></td>
                             <td><?= $model->title; ?></td>
                             <td><?= $model->hold; ?></td>
+                            <td><?= $model->description; ?></td>
                             <td><?= date('Y-m-d H:i:s', $model->created_at); ?></td>
                             <td>
                                 <?= Html::linkButton(['angle/index','pid' => $model['id']], '数据'); ?>

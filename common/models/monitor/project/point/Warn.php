@@ -1,19 +1,28 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-26 11:07:06
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-06-30 15:37:44
+ * @Description: 
+ */
 
 namespace common\models\monitor\project\point;
 
+use common\models\monitor\project\House;
+use common\models\monitor\project\log\WarnLog;
+use common\models\monitor\project\Point;
 use Yii;
 
 /**
  * This is the model class for table "rf_lx_monitor_point_warn".
  *
  * @property int $id
- * @property int $point_id 监测点ID
- * @property int $cate_id 分类
- * @property int $data_id 数据ID
+ * @property int $pid 监测点ID
+ * @property int $value_id 数据ID
  * @property string $description 描述
  * @property int $warn 报警等级
- * @property int $deal 处理方式
+ * @property int $state 处理方式
  * @property int $sort 优先级
  * @property int $status 状态
  * @property int $created_at 创建时间
@@ -35,7 +44,7 @@ class Warn extends \common\models\base\BaseModel
     public function rules()
     {
         return [
-            [['point_id', 'cate_id', 'data_id', 'warn', 'deal', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['pid', 'warn', 'state', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
             [['description'], 'string', 'max' => 140],
         ];
     }
@@ -47,16 +56,51 @@ class Warn extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'point_id' => 'Point ID',
-            'cate_id' => 'Cate ID',
-            'data_id' => 'Data ID',
-            'description' => 'Description',
-            'warn' => 'Warn',
-            'deal' => 'Deal',
-            'sort' => 'Sort',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'pid' => '监测点',
+            'description' => '描述',
+            'warn' => '报警等级',
+            'state' => '处理方式',
+            'sort' => '排序',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
+    }
+
+    /**
+     * @param bool $insert
+     * @return bool
+     */
+    public function beforeSave($insert)
+    {
+
+        // 修改数据记录数据修改日志
+        if (!$this->isNewRecord) {
+            $model = self::findOne($this->id);
+            // 没有数据发生变动
+            if($this->description == $model['description'] && $this->state == $model['state'] && $this->warn == $model['warn']){
+                goto S; //钩子跳转
+            }            
+            // 添加修改日志
+            $logModel = new WarnLog();
+            $logModel->pid = $this->id;
+            $logModel->remark = $this->description;
+            $logModel->warn = $this->warn;
+            $logModel->state = $this->state;
+            $logModel->save();
+        }
+        S:
+        return parent::beforeSave($insert);
+    }
+
+    public function getHouse()
+    {
+        return $this->hasOne(House::class,['id' => 'pid'])
+            ->viaTable(Point::tableName(),['id' => 'pid']);
+    }
+
+    public function getPoint()
+    {
+        return $this->hasOne(Point::class,['id' => 'pid']);
     }
 }

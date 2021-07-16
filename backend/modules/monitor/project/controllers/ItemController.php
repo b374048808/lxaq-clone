@@ -7,6 +7,8 @@ use backend\controllers\BaseController;
 use common\enums\StatusEnum;
 use common\models\monitor\project\Item;
 use common\models\base\SearchModel;
+use common\models\monitor\project\House;
+use yii\data\ActiveDataProvider;
 
 /**
  * 产品
@@ -73,5 +75,84 @@ class ItemController extends BaseController
             'model' => $model,
         ]);
     }
+
+
+     /**
+     * 回收站
+     * 
+     * @return mixed
+     */
+    public function actionRecycle()
+    {
+        $searchModel = new SearchModel([
+            'model' => $this->modelClass,
+            'scenario' => 'default',
+            'defaultOrder' => [
+                'id' => SORT_DESC
+            ],
+            'pageSize' => $this->pageSize
+        ]);
+
+        $dataProvider = $searchModel
+            ->search(Yii::$app->request->queryParams);
+        $dataProvider->query
+            ->andWhere(['=', 'status', StatusEnum::DELETE]);
+
+        return $this->render($this->action->id, [
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel
+        ]);
+    }
+
+    /**
+     * 还原
+     * 
+     * @param int
+     * @return mixed
+     */
+    public function actionShow($id)
+    {
+        $model = Item::findOne($id);
+
+        $model->status = StatusEnum::ENABLED;
+
+        return $model->save()
+                ? $this->redirect(['recycle'])
+                : $this->message($this->getError($model), $this->redirect(['recycle']), 'error');
+    }
+
+    /**
+     * 详情|项目下所有房屋列表
+     *
+     * @return mixed|\yii\web\Response
+     * @throws \yii\base\ExitException
+     */
+    public function actionView($id)
+    {
+        $model = $this->findModel($id);
+
+        $searchModel = new SearchModel([
+            'model' => House::class,
+            'scenario' => 'default',
+            'defaultOrder' => [
+                'id' => SORT_DESC
+            ],
+            'pageSize' => $this->pageSize
+        ]);
+
+        $dataProvider = $searchModel
+            ->search(Yii::$app->request->queryParams);
+        $dataProvider->query
+            ->andWhere(['item_id' => $id])
+            ->andWhere(['>=', 'status', StatusEnum::DISABLED]);
+
+
+        return $this->render($this->action->id, [
+            'model' => $model,
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
 
 }

@@ -32,10 +32,10 @@ class DefaultController extends OnAuthController
      */
     public function actionIndex()
     { 
-        $data = 'appId=doormen&nonceStr=z7cl7WR9&time='.time().'e3de3825cfbf';
-        $sign = strtolower(md5($data));
-        return $data.'&sign='.$sign;
-        return 'index';
+        // $data = 'appId=doormen&nonceStr=z7cl7WR9&time='.time().'e3de3825cfbf';
+        // $sign = strtolower(md5($data));
+        // return $data.'&sign='.$sign;
+        // return 'index';
     }
 
     /**

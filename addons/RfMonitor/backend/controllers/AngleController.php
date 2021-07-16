@@ -6,6 +6,7 @@ use Yii;
 use yii\data\Pagination;
 use common\enums\StatusEnum;
 use addons\RfMonitor\common\models\Angle;
+use addons\RfMonitor\common\models\House;
 
 /**
  * 房子管理
@@ -35,6 +36,7 @@ class AngleController extends BaseController
         $where = $pid>0?['pid' => $pid]:[];
         $data = $this->modelClass::find()
             ->where(['>=', 'status', StatusEnum::DISABLED]);
+        $houseModel = House::findOne($pid);
         $pages = new Pagination(['totalCount' => $data->count(), 'pageSize' => $this->pageSize]);
         $models = $data->offset($pages->offset)
             ->andWhere($where)
@@ -45,7 +47,8 @@ class AngleController extends BaseController
         return $this->render($this->action->id, [
             'models' => $models,
             'pages' => $pages,
-            'pid' => $pid
+            'pid' => $pid,
+            'pidModel' => $houseModel
         ]);
     }
 

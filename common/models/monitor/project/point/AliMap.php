@@ -1,8 +1,19 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-26 11:13:48
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-06-29 16:29:16
+ * @Description: 
+ */
 
 namespace common\models\monitor\project\point;
 
 use Yii;
+use common\models\console\iot\ali\Device;
+use common\models\monitor\project\Point;
+use common\enums\StatusEnum;
+use common\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "rf_lx_monitor_point_device_ali_map".
@@ -17,6 +28,7 @@ use Yii;
  */
 class AliMap extends \common\models\base\BaseModel
 {
+    public $lnglat;
     /**
      * {@inheritdoc}
      */
@@ -32,7 +44,10 @@ class AliMap extends \common\models\base\BaseModel
     {
         return [
             [['device_id', 'point_id'], 'required'],
-            [['device_id', 'point_id', 'install_time', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['height', 'lng', 'lat'], 'number'],
+            [['device_id', 'point_id', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['covers', 'install_time', 'lnglat'], 'safe'],
+            [['location'], 'string', 'max' => 100],
         ];
     }
 
@@ -43,12 +58,65 @@ class AliMap extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'device_id' => 'Device ID',
-            'point_id' => 'Point ID',
-            'install_time' => 'Install Time',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'device_id' => '设备',
+            'point_id' => '监测点位',
+            'covers' => '图像',
+            'lng' => '经度',
+            'lat' => 'L纬度',
+            'height' => '安装高度',
+            'install_time' => '安装时间',
+            'location' => '安装位置',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
+    }
+
+
+    /**
+     * @param bool $insert
+     * @return bool
+     * @throws \yii\base\Exception
+     */
+    public function beforeSave($insert)
+    {
+        if (!empty($this->lnglat)) {
+
+            // $lnglat =Map::bd_decrypt($this->lnglat['lng'],$this->lnglat['lat']);
+            $this->lng = $this->lnglat['lng'];
+            $this->lat = $this->lnglat['lat'];
+        }
+
+        return parent::beforeSave($insert);
+    }
+
+    public function getDevice()
+    {
+        return $this->hasOne(Device::class, ['id' => 'device_id']);
+    }
+
+    public function getPoint()
+    {
+        return $this->hasOne(Point::class, ['id' => 'point_id']);
+    }
+
+    public static function getPointColumn($device_id)
+    {
+        $model = self::find()
+            ->where(['device_id' => $device_id])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+        return ArrayHelper::getColumn($model, 'point_id', $keepKeys = true);
+    }
+
+
+    public static function getPointCount($device_id)
+    {
+        return self::find()
+            ->where(['device_id' => $device_id])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->groupBy('point_id')
+            ->count();
     }
 }

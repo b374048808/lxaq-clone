@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-01 14:26:41
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-06-25 11:06:25
+ * @Description: 
+ */
 
 namespace api\modules\v1\controllers\member;
 
@@ -37,7 +44,7 @@ class MemberController extends OnAuthController
                 'id', 'username', 'nickname',
                 'realname', 'head_portrait', 'gender',
                 'qq', 'email', 'birthday',
-                'status', 'created_at'
+                'status', 'created_at', 'mobile'
             ])
             ->asArray()
             ->one();
@@ -60,7 +67,7 @@ class MemberController extends OnAuthController
     public function checkAccess($action, $model = null, $params = [])
     {
         // 方法名称
-        if (in_array($action, ['delete', 'index'])) {
+        if (in_array($action, ['index'])) {
             throw new \yii\web\BadRequestHttpException('权限不足');
         }
     }

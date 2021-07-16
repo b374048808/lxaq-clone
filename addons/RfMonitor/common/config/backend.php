@@ -34,14 +34,6 @@ return [
 
             ],
         ],
-        [
-            'title' => '倾斜率',
-            'route' => 'angle/index',
-            'icon' => '',
-            'params' => [
-
-            ],
-        ],
     
     ],
 

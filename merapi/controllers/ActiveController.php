@@ -14,6 +14,7 @@ use yii\web\BadRequestHttpException;
 use common\traits\BaseAction;
 use common\behaviors\ActionLogBehavior;
 use common\behaviors\HttpSignAuth;
+use common\helpers\MerAuth;
 
 /**
  * Class ActiveController
@@ -144,7 +145,19 @@ class ActiveController extends \yii\rest\ActiveController
         }
 
         // 权限方法检查，如果用了rbac，请注释掉
-        $this->checkAccess($action->id, $this->modelClass, Yii::$app->request->get());
+        // $this->checkAccess($action->id, $this->modelClass, Yii::$app->request->get());
+
+
+         // 判断当前模块的是否为主模块, 模块+控制器+方法
+         $permissionName = '/' . Yii::$app->controller->route;
+         // 判断是否忽略校验
+         if (in_array($permissionName, Yii::$app->params['noAuthRoute'])) {
+             return true;
+         }
+         // 开始权限校验
+         if (!MerAuth::verify($permissionName)) {
+             throw new \yii\web\BadRequestHttpException('对不起，您现在还没获此操作的权限');
+         }
 
         // 每页数量
         $this->pageSize = Yii::$app->request->get('per-page', 10);

@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-26 10:23:00
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-06-30 10:52:03
+ * @Description: 
+ */
 
 namespace common\models\console\iot\huawei;
 
@@ -49,23 +56,28 @@ class Product extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'type' => 'Type',
-            'product_key' => 'Product Key',
-            'producers' => 'Producers',
-            'cover' => 'Cover',
-            'sort' => 'Sort',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'name' => '设备名称',
+            'type' => '类型',
+            'product_key' => '产品秘钥',
+            'producers' => '厂家',
+            'cover' => '封面',
+            'sort' => '排序',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
     }
 
     /**
+     * 列表
+     *
      * @return array
      */
     public static function getMapList(){
-        $data = self::find()->where(['>=','status','StatusEnum::DISABLED'])->asArray()->all();
+        $data = self::find()
+            ->where(['>=','status','StatusEnum::DISABLED'])
+            ->asArray()
+            ->all();
         return ArrayHelper::map($data,'id','name');
     }
 }

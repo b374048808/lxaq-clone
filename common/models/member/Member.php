@@ -13,6 +13,11 @@ use common\enums\StatusEnum;
 use common\models\base\User;
 use common\helpers\RegularHelper;
 use common\traits\Tree;
+use common\models\rbac\AuthAssignment;
+use common\enums\AppEnum;
+use common\models\member\base\GroundMap;
+use common\models\member\HouseMap;
+use common\models\member\base\HouseMap as GroundHouseMap;
 
 /**
  * This is the model class for table "{{%member}}".
@@ -143,6 +148,49 @@ class Member extends User
         return $scenarios;
     }
 
+
+    /**
+     * 关联授权角色
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAssignment()
+    {
+        return $this->hasOne(AuthAssignment::class, ['user_id' => 'id'])
+            ->where(['app_id' => AppEnum::API]);
+    }
+
+    /**
+     * 关联授权房屋
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getHouse()
+    {
+        return $this->hasMany(HouseMap::class, ['member_id' => 'id']);
+    }
+
+    /**
+     * 关联授权房屋
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getHouseMap()
+    {
+        return $this->hasMany(GroundHouseMap::class, ['ground_id' => 'ground_id'])->viaTable(GroundMap::tableName(),['member_id' => 'id']);
+    }
+
+     /**
+     * 关联授权房屋
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getGround()
+    {
+        return $this->hasMany(GroundMap::class, ['member_id' => 'id']);
+    }
+    
+
     /**
      * 关联账号
      */
@@ -158,6 +206,7 @@ class Member extends User
     {
         return $this->hasOne(Level::class, ['level' => 'current_level'])->andFilterWhere(['merchant_id' => Yii::$app->services->merchant->getId()]);
     }
+
 
     /**
      * 关联第三方绑定

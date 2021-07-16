@@ -34,10 +34,10 @@ class MemberController extends OnAuthController
         $model = $this->modelClass::find()
             ->where(['id' => $id, 'status' => StatusEnum::ENABLED])
             ->select([
-                'id', 'username', 'nickname',
+                'id', 'username',
                 'realname', 'head_portrait', 'gender',
                 'qq', 'email', 'birthday',
-                'user_money', 'user_integral', 'status',
+                'status',
                 'created_at'
             ])
             ->asArray()

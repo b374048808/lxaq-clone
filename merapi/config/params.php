@@ -22,4 +22,7 @@ return [
     ],
     // 触发格式化返回
     'triggerBeforeSend' => true,
+    'noAuthRoute' => [
+        // '/v1/site/login'
+    ]
 ];

@@ -103,13 +103,18 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             'header' => "操作",
                             'contentOptions' => ['class' => 'text-align-center'],
                             'class' => 'yii\grid\ActionColumn',
-                            'template' => '{ajax-edit} {address} {update-level} {recharge} {edit} {status} {destroy}',
+                            'template' => '{ajax-edit} {house} {recharge} {edit} {status} {destroy}',
                             'buttons' => [
                                 'ajax-edit' => function ($url, $model, $key) {
                                     return Html::a('账号密码', ['ajax-edit', 'id' => $model->id], [
                                             'data-toggle' => 'modal',
                                             'data-target' => '#ajaxModal',
                                             'class' => 'blue'
+                                        ]) . '<br>';
+                                },
+                                'house' => function ($url, $model, $key) {
+                                    return Html::a('房屋权限', ['house-map/index', 'id' => $model->id], [
+                                            'class' => 'cyan'
                                         ]) . '<br>';
                                 },
                                 'address' => function ($url, $model, $key) {

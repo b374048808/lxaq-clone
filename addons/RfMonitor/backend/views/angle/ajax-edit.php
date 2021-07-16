@@ -17,16 +17,16 @@ $form = ActiveForm::begin([
 
 <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
-    <h4 class="modal-title">基本信息(距离单位为:毫米mm)</h4>
+    <h4 class="modal-title">基本信息(单位米)</h4>
 </div>
 <div class="modal-body">
     <?= $form->field($model, 'title')->textInput(); ?>
     <?= $form->field($model, 'pid')->hiddenInput()->label(false); ?>
     <?= $form->field($model, 'level_first')->textInput(); ?>
-    <?= $form->field($model, 'level_second')->textInput(); ?>
-    <?= $form->field($model, 'level')->textInput(); ?>
+    <?= $form->field($model, 'level_second')->textInput(); ?>    
     <?= $form->field($model, 'vertical_first')->textInput(); ?>
     <?= $form->field($model, 'vertical_second')->textInput(); ?>
+    <?= $form->field($model, 'level')->textInput(); ?>
     <?= $form->field($model, 'vertical')->textInput(); ?>
     <?= $form->field($model, 'value')->textInput()->hint('‰'); ?>
     <?= $form->field($model, 'news')->dropDownList(array_merge([0 => '未选择'], NewsEnum::getMap())); ?>
@@ -38,7 +38,8 @@ $form = ActiveForm::begin([
 </div>
 <?php ActiveForm::end(); ?>
 <script>
-    var levelValue = verticalValue = 0;
+    var levelValue = $("#angle-level").val();
+    var verticalValue = $("#angle-vertical").val();
 
     function levelChange() {
         var first = $("#angle-level_first").val();
@@ -47,8 +48,8 @@ $form = ActiveForm::begin([
             return false;
         }
         if (!isNaN(first) || !isNaN(second)) {
-            level = second - first;
-            $("#angle-level").val(level);
+            levelValue = (second - first).toFixed(3);
+            $("#angle-level").val(levelValue);
             valueChange()
             return true;
         } else {
@@ -65,7 +66,7 @@ $form = ActiveForm::begin([
             return false;
         }
         if (!isNaN(first) || !isNaN(second)) {
-            verticalValue = second - first;
+            verticalValue =  (second - first).toFixed(3);
             $("#angle-vertical").val(verticalValue);
             valueChange()
             return true;
@@ -79,7 +80,8 @@ $form = ActiveForm::begin([
             return false;
         }
         if (!isNaN(verticalValue) || !isNaN(levelValue)) {
-            $("#angle-value").val(Math.abs(levelValue / verticalValue * 1000).toFixed(2));
+            console.log(levelValue / verticalValue);
+            $("#angle-value").val((levelValue / verticalValue * 1000).toFixed(3));
             return true;
         } else {
             return false;

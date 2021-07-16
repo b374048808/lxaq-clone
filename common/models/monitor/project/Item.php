@@ -52,15 +52,15 @@ class Item extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'title' => 'Title',
-            'cover' => 'Cover',
-            'hold' => 'Hold',
-            'mobile' => 'Mobile',
-            'description' => 'Description',
-            'sort' => 'Sort',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'title' => '名称',
+            'cover' => '封面',
+            'hold' => '户主',
+            'mobile' => '联系方式',
+            'description' => '描述',
+            'sort' => '排序',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
     }
 

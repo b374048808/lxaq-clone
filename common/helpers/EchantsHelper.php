@@ -61,47 +61,47 @@ class EchantsHelper
     public static function getFormatTime($type, $start_time = '', $end_time = '')
     {
         switch ($type) {
-            case 'yesterday' :
+            case 'yesterday':
                 list($time, $format) = [DateHelper::yesterday(), 'hour'];
                 break;
-            case 'thisWeek' :
+            case 'thisWeek':
                 list($time, $format) = [DateHelper::thisWeek(), 'week'];
                 break;
-            case 'thisMonth' :
+            case 'thisMonth':
                 list($time, $format) = [DateHelper::thisMonth(), 'day'];
                 break;
-            case 'thisYear' :
+            case 'thisYear':
                 list($time, $format) = [DateHelper::aYear(date('Y')), 'month'];
                 break;
-            case 'this30Day' :
+            case 'this30Day':
                 list($time, $format) = [['start' => time() - 60 * 60 * 24 * 30, 'end' => time()], 'day'];
                 break;
-            case 'this7Day' :
+            case 'this7Day':
                 list($time, $format) = [['start' => time() - 60 * 60 * 24 * 7, 'end' => time()], 'day'];
                 break;
-            case 'lastYear' :
+            case 'lastYear':
                 list($time, $format) = [DateHelper::aYear(date('Y') - 1), 'month'];
                 break;
-            case 'betweenHour' :
+            case 'betweenHour':
                 list($time, $format) = [['start' => $start_time, 'end' => $end_time], 'hour'];
                 break;
-            case 'betweenDay' :
+            case 'betweenDay':
                 list($time, $format) = [['start' => $start_time, 'end' => $end_time], 'day'];
                 break;
-            case 'betweenMonth' :
+            case 'betweenMonth':
                 list($time, $format) = [['start' => $start_time, 'end' => $end_time], 'month'];
                 break;
-            case 'betweenYear' :
+            case 'betweenYear':
                 list($time, $format) = [['start' => $start_time, 'end' => $end_time], 'year'];
                 break;
-            case 'customData' :
+            case 'customData':
                 $end = strtotime(Yii::$app->request->get('echarts_end')) + 60 * 60 * 24 - 1;
                 list($time, $format) = [['start' => strtotime(Yii::$app->request->get('echarts_start')), 'end' => $end], 'day'];
                 break;
-            case 'all' :
+            case 'all':
                 list($time, $format) = [['start' => $start_time, 'end' => $end_time], ''];
                 break;
-            default :
+            default:
                 // 默认今天
                 list($time, $format) = [DateHelper::today(), 'hour'];
                 break;
@@ -134,6 +134,7 @@ class EchantsHelper
         $echartType = 'line'
     ) {
         $data = call_user_func($function, $time['start'], $time['end'], self::$formats[$format]['sql']);
+
         // 对比key
         $data = ArrayHelper::arrayKey($data, $distinguishKey);
         // 递增时间
@@ -150,9 +151,9 @@ class EchantsHelper
                     'name' => $value,
                     'type' => $echartType,
                     // 显示数量
-//                'label' => [
-//                    'show' => true
-//                ],
+                    //                'label' => [
+                    //                    'show' => true
+                    //                ],
                     // 'smooth' => 'true',
                     'data' => [],
                 ];

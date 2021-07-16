@@ -33,16 +33,16 @@ use common\enums\NewsEnum;
                                         'allowClear' => true
                                     ],
                                 ]); ?>
-                                        <?= $form->field($model, 'mobile')->textInput() ?>
-                                    
-                                        <?= $form->field($model, 'address')->textInput() ?>
-                                   
-                                        <?= $form->field($model, 'height')->textInput() ?>
-                                    
-                                        <?= $form->field($model, 'width')->textInput() ?>
-                                 
-                                        <?= $form->field($model, 'length')->textInput() ?>
-                                   
+                                <?= $form->field($model, 'mobile')->textInput() ?>
+
+                                <?= $form->field($model, 'address')->textInput() ?>
+
+                                <?= $form->field($model, 'height')->textInput() ?>
+
+                                <?= $form->field($model, 'width')->textInput() ?>
+
+                                <?= $form->field($model, 'length')->textInput() ?>
+
                                 <?= \common\widgets\provinces\Provinces::widget([
                                     'form' => $form,
                                     'model' => $model,
@@ -53,49 +53,45 @@ use common\enums\NewsEnum;
                                 ]); ?>
                                 <hr />
                                 <h4>建筑物概况</h4>
-                                        <?= $form->field($model, 'year')->textInput() ?>
-                                    
-                                        <?= $form->field($model, 'area')->textInput()->hint('单位:平方') ?>
-                                    
-                                        <?= $form->field($model, 'layer')->textInput() ?>
-                                   
-                                        <?= $form->field($model, 'lnglat')->widget(\common\widgets\selectmap\Map::class, [
-                                            'type' => 'amap', // amap高德;tencent:腾讯;baidu:百度
-                                        ]); ?>
-                                   
-                                        <?= $form->field($model, 'news')->dropDownList(NewsEnum::getMap()); ?>
-                                    
+                                <?= $form->field($model, 'year')->textInput() ?>
+
+                                <?= $form->field($model, 'area')->textInput()->hint('单位:平方') ?>
+
+                                <?= $form->field($model, 'layer')->textInput() ?>
+
+                                <?= $form->field($model, 'lnglat')->widget(\common\widgets\selectmap\Map::class, [
+                                    'type' => 'amap', // amap高德;tencent:腾讯;baidu:百度
+                                ]); ?>
+
+                                <?= $form->field($model, 'news')->dropDownList(NewsEnum::getMap()); ?>
+
                                 <hr />
                                 <h4>五方主体</h4>
-                                        <?= $form->field($model, 'owner')->textInput(); ?>
-                                 
-                                        <?= $form->field($model, 'design')->textInput(); ?>
-                              
-                                        <?= $form->field($model, 'supervision')->textInput(); ?>
-                                   
-                                        <?= $form->field($model, 'prospect')->textInput(); ?>
-                                   
-                                        <?= $form->field($model, 'roadwork')->textInput(); ?>
-                                        <hr />
+                                <?= $form->field($model, 'owner')->textInput(); ?>
+
+                                <?= $form->field($model, 'design')->textInput(); ?>
+
+                                <?= $form->field($model, 'supervision')->textInput(); ?>
+
+                                <?= $form->field($model, 'prospect')->textInput(); ?>
+
+                                <?= $form->field($model, 'roadwork')->textInput(); ?>
+                                <hr />
                                 <h4>结构概况</h4>
-                                        <?= $form->field($model, 'type')->radioList(StructEnum::$typeList); ?>
-                           
-                                        <?= $form->field($model, 'roof')->dropDownList(StructEnum::$roofList); ?>
-                                 
-                                        <?= $form->field($model, 'floor')->dropDownList(StructEnum::$roofList); ?>
-                                  
-                                        <?= $form->field($model, 'basement')->radioList(['0' => '无', '1' => '有']); ?>
-                                    
-                                        <?= $form->field($model, 'beam')->radioList(['0' => '无', '1' => '有']); ?>
-                                    
-                                        <?= $form->field($model, 'column')->radioList(['0' => '无', '1' => '有']); ?>
-                                  
+                                <?= $form->field($model, 'type')->radioList(StructEnum::typeMap()); ?>
+
+                                <?= $form->field($model, 'roof')->dropDownList(StructEnum::roofMap()); ?>
+
+                                <?= $form->field($model, 'floor')->dropDownList(StructEnum::roofMap()); ?>
+
+                                <?= $form->field($model, 'basement')->radioList(['0' => '无', '1' => '有']); ?>
+
+                                <?= $form->field($model, 'beam')->radioList(['0' => '无', '1' => '有']); ?>
+
+                                <?= $form->field($model, 'column')->radioList(['0' => '无', '1' => '有']); ?>
+
                                 <?= $form->field($model, 'description')->textarea() ?>
                                 <?= $form->field($model, 'sort')->textInput() ?>
-                            </div>
-                            <div class="box-footer text-center">
-                                <button class="btn btn-primary" type="submit" onclick="sendForm()">保存</button>
-                                <span class="btn btn-white" onclick="history.go(-1)">返回</span>
                             </div>
                         </div>
                     </div>

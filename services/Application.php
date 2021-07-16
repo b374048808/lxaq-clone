@@ -84,8 +84,10 @@ class Application extends Service
         'backendNotifySubscriptionConfig' => 'services\backend\NotifySubscriptionConfigService',
         'backendMember' => 'services\backend\MemberService',
         'backendMemberAuth' => 'services\backend\MemberAuthService',
+        'monitorNotify' => 'services\backend\MonitorNotifyService',
         /** ------ 用户 ------ **/
         'member' => 'services\member\MemberService',
+        'memberHouse' => 'services\member\HouseService',
         'memberAuth' => 'services\member\AuthService',
         'memberAccount' => 'services\member\AccountService',
         'memberLevel' => 'services\member\LevelService',
@@ -94,6 +96,7 @@ class Application extends Service
         'memberBankAccount' => 'services\member\BankAccountService',
         'memberCreditsLog' => 'services\member\CreditsLogService',
         'memberRechargeConfig' => 'services\member\RechargeConfigService',
+        'memberGround' => 'services\member\MemberGroundService',
         /** ------ 商户 ------ **/
         'merchant' => 'services\merchant\MerchantService',
         'merchantAccount' => 'services\merchant\AccountService',
@@ -103,6 +106,16 @@ class Application extends Service
         'merchantCate' => 'services\merchant\CateService',
         'merchantMember' => 'services\merchant\MemberService',
         'merchantMemberAuth' => 'services\merchant\MemberAuthService',
+        /** ------ 员工 ------ **/
+        'worker' => 'services\worker\WorkerService',
+        'workerAuth' => 'services\worker\AuthService',
+        'workerAccount' => 'services\worker\AccountService',
+        'workerLevel' => 'services\worker\LevelService',
+        'workerAddress' => 'services\worker\AddressService',
+        'workerInvoice' => 'services\worker\InvoiceService',
+        'workerBankAccount' => 'services\worker\BankAccountService',
+        'workerCreditsLog' => 'services\worker\CreditsLogService',
+        'workerRechargeConfig' => 'services\worker\RechargeConfigService',
         /** ------ api ------ **/
         'apiAccessToken' => [
             'class' => 'services\api\AccessTokenService',
@@ -112,6 +125,12 @@ class Application extends Service
         /** ------ merapi ------ **/
         'merapiAccessToken' => [
             'class' => 'services\merapi\AccessTokenService',
+            'cache' => false, // 启用缓存到缓存读取用户信息
+            'timeout' => 720, // 缓存过期时间，单位秒
+        ],
+        /** ------ workapi ------ **/
+        'workapiAccessToken' => [
+            'class' => 'services\workapi\AccessTokenService',
             'cache' => false, // 启用缓存到缓存读取用户信息
             'timeout' => 720, // 缓存过期时间，单位秒
         ],
@@ -160,6 +179,8 @@ class Application extends Service
         'rbacAuthItem' => 'services\rbac\AuthItemService',
         'rbacAuthItemChild' => 'services\rbac\AuthItemChildService',
         'rbacAuthRole' => 'services\rbac\AuthRoleService',
+        'rbacApiAuthRole' => 'services\rbac\ApiAuthRoleService',
+        'rbacMerapiAuthRole' => 'services\rbac\MerapiAuthRoleService',
         'rbacAuthAssignment' => 'services\rbac\AuthAssignmentService',
         /** ------ oauth2 ------ **/
         'oauth2Server' => 'services\oauth2\ServerService',
@@ -168,7 +189,25 @@ class Application extends Service
         'oauth2RefreshToken' => 'services\oauth2\RefreshTokenService',
         'oauth2AuthorizationCode' => 'services\oauth2\AuthorizationCodeService',
         /** ------ 监测系统 ------ **/
+        'houseGround' => 'services\monitor\HouseGroundService',
         'pointValue' => 'services\monitor\PointValueService',
-
+        'pointWarn' => 'services\monitor\PointWarnService',
+        'point' => 'services\monitor\PointService',
+        'angleValue' => 'services\monitor\AngleValueService',
+        'cracksValue' => 'services\monitor\CracksValueService',
+        'sinkValue' => 'services\monitor\SinkValueService',
+        'moveValue' => 'services\monitor\MoveValueService',
+        'ruleSimple' => 'services\monitor\RuleSimpleService',
+        'createSimple' => 'services\monitor\CreateSimpleService',
+        /** ------ 华为物联网 ------ **/
+        'huaweiDevice' => 'services\huawei\DeviceService',
+        'huaweiValue' => 'services\huawei\ValueService',
+        'huaweiDirective' => 'services\huawei\DirectiveService',
+        /** ------ 阿里物联网 ------ **/
+        'aliDevice' => 'services\ali\DeviceService',
+        'aliValue' => 'services\ali\ValueService',
+        'aliDirective' => 'services\ali\DirectiveService',
+        /** ------ 员工 ------ **/
+        'backendWorker' => 'services\backend\WorkerService',
     ];
 }

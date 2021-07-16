@@ -8,6 +8,7 @@ use common\components\Service;
 use common\models\member\Member;
 use common\helpers\EchantsHelper;
 use common\helpers\TreeHelper;
+use common\helpers\ArrayHelper;
 
 /**
  * Class MemberService
@@ -201,5 +202,59 @@ class MemberService extends Service
         $member->last_time = time();
         $member->last_ip = Yii::$app->request->getUserIP();
         $member->save();
+    }
+
+    /**
+     * @param $id
+     * @return array|\yii\db\ActiveRecord|null
+     */
+    public function findByIdWithAssignment($id)
+    {
+        return Member::find()
+            ->where(['id' => $id])
+            ->with('assignment')
+            ->one();
+    }
+
+
+    /**
+     * 获取下一级用户id
+     *
+     * @param $id
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function findByIdWithHouse()
+    {
+        $id = Yii::$app->user->identity->member_id;
+        $model = Member::find()
+            ->with(['house','houseMap'])
+            ->where(['id' => $id])
+            ->asArray()
+            ->one();
+        return array_merge(
+            ArrayHelper::getColumn($model['house'],'house_id', $keepKeys = true),
+            ArrayHelper::getColumn($model['houseMap'],'house_id', $keepKeys = true),
+        );
+    }
+    
+    /**
+     * 获取下一级用户id
+     *
+     * @param $id
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function findHouseIdRule($id)
+    {
+        $member = $this->get($id);
+
+        return Member::find()
+            ->select(['id'])
+            ->where(['status' => StatusEnum::ENABLED])
+            ->andWhere(['like', 'tree', $member->tree . TreeHelper::prefixTreeKey($member->id) . '%', false])
+            ->andWhere(['level' => $member->level + 1])
+            ->andFilterWhere(['merchant_id' => $this->getMerchantId()])
+            ->orderBy('id desc')
+            ->asArray()
+            ->column();
     }
 }

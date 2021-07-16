@@ -2,7 +2,13 @@
 
 namespace common\models\console\iot\huawei;
 
+
+
 use Yii;
+use common\enums\StatusEnum;
+use common\helpers\ArrayHelper;
+use common\models\monitor\project\Point;
+use common\models\monitor\project\point\HuaweiMap;
 
 /**
  * This is the model class for table "rf_lx_iot_huawei_device".
@@ -35,13 +41,12 @@ class Device extends \common\models\base\BaseModel
     public function rules()
     {
         return [
-            [['device_name', 'pid'], 'required'],
-            [['pid', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['device_id','number'],'unique'],
+            [['pid', 'number'], 'required'],
+            [['pid', 'sort', 'status', 'created_at', 'updated_at','card_id'], 'integer'],
             [['device_name'], 'string', 'max' => 50],
-            [['iccid'], 'string', 'max' => 30],
             [['number'], 'string', 'max' => 100],
-            [['device_id'], 'string', 'max' => 255],
-            ['expiration_time', 'safe']
+            [['device_id'], 'string', 'max' => 255]
         ];
     }
 
@@ -52,43 +57,102 @@ class Device extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'device_name' => 'Device Name',
+            'device_name' => '设备名称',
             'pid' => 'Pid',
-            'iccid' => 'Iccid',
-            'expiration_time' => 'Expiration Time',
-            'number' => 'Number',
-            'device_id' => 'Device ID',
-            'sort' => 'Sort',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'card_id' => '卡号',
+            'number' => '编号',
+            'device_id' => '设备ID',
+            'sort' => '排序',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
     }
 
-    /*
-    * 设备24小时内有无数据
-    */
+    /**
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getDropDown()
+    {
+        $models = self::find()
+            ->where(['status' => StatusEnum::ENABLED])
+            ->orderBy('sort asc,created_at asc')
+            ->asArray()
+            ->all();
 
+        return ArrayHelper::map($models, 'id', 'number');
+    }
+
+    /**
+     * 设备状态
+     *
+     * @return html
+     */
     public function getDeviceStatus()
     {
-        return DeviceValue::find()->where(['pid' => $this->id])
+        return Value::find()->where(['pid' => $this->id])
             ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
             ->exists() ? '<span class="label label-info">在线</span>' : '<span class="label label-warning">离线</span>';
     }
 
-    /*
-    * 监测电量过低
-    */
+    /**
+     * 电量状态
+     *
+     * @return html
+     */
     public function getDeviceVoltage(){
-    	$model = DeviceValue::find()->where(['pid' => $this->id])->orderBy('event_time desc')->one();
+    	$model = Value::find()->where(['pid' => $this->id])->orderBy('event_time desc')->one();
     	return ($model->value['voltage'] < 3.2 && $model->value['voltage'])?'<span class="label label-warning">电量过低</span>':'';
     }
 
-     /*
-    *对应产品
-    *@return Array
-    */
+     /**
+     * 关联产品
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getProduct(){
-    	return $this->hasOne(Product::className(),['id' => 'pid']);
+    	return $this->hasOne(Product::class,['id' => 'pid']);
+    }
+
+    /**
+     * 关联服务
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getService(){
+    	return $this->hasMany(Service::class,['pid' => 'id'])
+            ->viaTable(Product::tableName(),['id' => 'pid']);
+    }
+
+    /**
+     * 关联命令
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDirective(){
+    	return $this->hasMany(Directive::class,['pid' => 'id'])->viaTable(Product::tableName(),['id' => 'pid']);
+    }
+
+
+    /**
+     * 最新数据
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getNewValue(){
+    	return $this->hasOne(Value::class,['pid' => 'id'])
+            ->orderBy('event_time desc,id desc');
+    }
+
+
+    /**
+     * 关联监测点
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getPoint()
+    {
+        return $this->hasOne(Point::class,['id' => 'point_id'])
+            ->viaTable(HuaweiMap::tableName(),['device_id' => 'id']);
     }
 }

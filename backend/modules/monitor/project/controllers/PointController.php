@@ -5,9 +5,13 @@ use Yii;
 use common\traits\Curd;
 use backend\controllers\BaseController;
 use common\enums\StatusEnum;
+use common\enums\ValueTypeEnum;
 use common\models\monitor\project\Point;
 use common\models\base\SearchModel;
 use common\helpers\ResultHelper;
+use common\models\monitor\project\log\WarnLog;
+use common\enums\WarnEnum;
+use common\models\monitor\project\point\HuaweiMap;
 
 /**
  * 产品
@@ -62,9 +66,35 @@ class PointController extends BaseController
      */
     public function actionView($id)
     {
+        $request  = Yii::$app->request;
         $model = $this->findModel($id);
+        $valueType = $request->get('valueType',ValueTypeEnum::AUTOMATIC);
 
+        
         return $this->render($this->action->id, [
+            'model' => $model,
+            'valueType' => $valueType,
+        ]);
+    }
+
+    public function actionAjaxState($pid)
+    {
+        $request = Yii::$app->request;
+        $pid = $request->get('pid', NULL);
+        $model = new WarnLog();
+        $model->pid = $pid?:$model->pid;
+        // ajax 校验
+        $this->activeFormValidate($model);
+        if ($model->load($request->post())) {
+            $pointModel = Point::findOne($pid);
+            $model->warn = $pointModel->warn;
+            $pointModel->warn = WarnEnum::SUCCESS;
+            $pointModel->save();
+            return $model->save()
+                ? $this->redirect(Yii::$app->request->referrer)
+                : $this->message($this->getError($model), $this->redirect(Yii::$app->request->referrer), 'error');
+        }
+        return $this->renderAjax('ajax-state', [
             'model' => $model,
         ]);
     }
@@ -87,7 +117,7 @@ class PointController extends BaseController
         $this->activeFormValidate($model);
         if ($model->load($request->post())) {
             return $model->save()
-                ? $this->redirect(['index','pid' => $pid])
+                ? $this->redirect(Yii::$app->request->referrer)
                 : $this->message($this->getError($model), $this->redirect(['index']), 'error');
         }
         return $this->renderAjax('ajax-edit', [
@@ -98,12 +128,13 @@ class PointController extends BaseController
     /**
      * 监测点指定时间内数据
      *
-     * @param $type
-     * @return array
+     * @param number type
+     * @return json|ResultHelper
      */
-    public function actionValueBetweenChart($type,$id)
+    public function actionValueBetweenChart($type, $id, $valueType)
     {
-        $data = Yii::$app->services->pointValue->getBetweenChartStat($type,$id);
+        $model = $this->findModel($id);
+        $data = Yii::$app->services->pointValue->getBetweenChartStat($type ,$id,$valueType);
 
         return ResultHelper::json(200, '获取成功', $data);
     }

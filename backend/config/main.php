@@ -25,13 +25,62 @@ return [
         'member' => [
             'class' => 'backend\modules\member\Module',
         ],
+        /** ------ 会员权限模块 ------ **/
+        'member-base' => [
+            'class' => 'backend\modules\member\base\Module',
+        ],
+        /** ------ 员工模块 ------ **/
+        'worker' => [
+            'class' => 'backend\modules\company\worker\Module',
+        ],
+        /** ------ 公司基础 ------ **/
+        'company-base' => [
+            'class' => 'backend\modules\company\base\Module',
+        ],
         /** ------ 物联网模块 ------ **/
-        'console-iot' => [
-            'class' => 'backend\modules\console\iot\Module',
+        'console-ali' => [
+            'class' => 'backend\modules\console\ali\Module',
+        ],
+        /** ------ 物联网模块 ------ **/
+        'console-huawei' => [
+            'class' => 'backend\modules\console\huawei\Module',
+        ],
+        /** ------ 物联网模块 ------ **/
+        'console-lk' => [
+            'class' => 'backend\modules\console\lk\Module',
         ],
         /** ------ 项目模块 ------ **/
         'monitor-project' => [
             'class' => 'backend\modules\monitor\project\Module',
+        ],
+        /** ------ 项目模块 ------ **/
+        'monitor-rule' => [
+            'class' => 'backend\modules\monitor\rule\Module',
+        ],
+        /** ------ 项目首页 ------ **/
+        'monitor-main' => [
+            'class' => 'backend\modules\monitor\main\Module',
+        ],
+        /** ------ 项目模块 ------ **/
+        'monitor-lk' => [
+            'class' => 'backend\modules\monitor\lk\Module',
+        ],
+        'monitor-log' => [
+            'class' => 'backend\modules\monitor\log\Module',
+        ],
+        'monitor-data' => [
+            'class' => 'backend\modules\monitor\data\Module',
+        ],
+        /** ------ 项目模块 ------ **/
+        'monitor-create' => [
+            'class' => 'backend\modules\monitor\create\Module',
+        ],
+        /** ------ 物联卡 ------ **/
+        'sim-list' => [
+            'class' => 'backend\modules\sim\vlist\Module',
+        ],
+        'sim-renewal' => [
+            'class' => 'backend\modules\sim\renewal\Module',
         ],
         /** ------ oauth2 ------ **/
         'oauth2' => [
@@ -51,6 +100,15 @@ return [
                 Yii::$app->services->backendMember->lastLogin($event->identity);
             },
         ],
+        // 'view'=>[
+        //     'theme' => [
+        //         'basePath' => '@backend/themes/defaults',
+        //         'baseUrl' => '@web/themes/defaults',
+        //         'pathMap' => [
+        //             '@backend/views' => '@backend/themes/defaults'
+        //         ],
+        //     ]
+        // ],
         'session' => [
             // this is the name of the session cookie used for login on the backend
             'name' => 'advanced-backend',
@@ -119,6 +177,7 @@ return [
         'select-map' => 'common\widgets\selectmap\MapController', // 经纬度选择
         'cropper' => 'common\widgets\cropper\CropperController', // 图片裁剪
         'notify' => 'backend\widgets\notify\NotifyController', // 消息
+        'monitor-notify' => 'backend\widgets\monitornotify\NotifyController', // 消息
     ],
     'params' => $params,
 ];

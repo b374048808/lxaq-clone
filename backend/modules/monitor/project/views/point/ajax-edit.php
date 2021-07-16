@@ -1,10 +1,19 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-29 10:33:56
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-05-10 14:49:40
+ * @Description: 
+ */
 
 use yii\widgets\ActiveForm;
 use common\helpers\Url;
 use common\widgets\webuploader\Files;
 use common\enums\PointEnum;
 use common\enums\StatusEnum;
+use common\enums\NewsEnum;
+use common\enums\WarnEnum;
 
 $form = ActiveForm::begin([
     'id' => $model->formName(),
@@ -34,7 +43,9 @@ $form = ActiveForm::begin([
             ],
         ]
     ]); ?>
+    <?= $form->field($model, 'news')->dropDownList(NewsEnum::getMap()) ?>
     <?= $form->field($model, 'description')->textarea() ?>
+    <?= $form->field($model, 'warn')->radioList(WarnEnum::getMap()) ?>
     <?= $form->field($model, 'sort')->textInput() ?>
     <?= $form->field($model, 'status')->radioList(StatusEnum::getMap()) ?>
 </div>

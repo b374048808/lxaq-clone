@@ -3,6 +3,8 @@
 namespace common\models\console\iot\ali;
 
 use Yii;
+use common\enums\StatusEnum;
+use common\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "rf_lx_iot_ali_device".
@@ -35,10 +37,11 @@ class Device extends \common\models\base\BaseModel
     public function rules()
     {
         return [
-            [['device_name', 'pid'], 'required'],
-            [['pid', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['device_id','number'],'unique'],
+            [['pid', 'device_id'], 'required'],
+            [['pid', 'sort', 'status', 'created_at', 'updated_at','card_id'], 'integer'],
+            ['start_data','number'],
             [['device_name'], 'string', 'max' => 50],
-            [['iccid'], 'string', 'max' => 30],
             [['number'], 'string', 'max' => 100],
             [['device_id'], 'string', 'max' => 255],
             ['expiration_time', 'safe']
@@ -52,35 +55,72 @@ class Device extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'device_name' => 'Device Name',
-            'pid' => 'Pid',
-            'iccid' => 'Iccid',
-            'expiration_time' => 'Expiration Time',
-            'number' => 'Number',
-            'device_id' => 'Device ID',
-            'sort' => 'Sort',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'device_name' => '设备名',
+            'pid' => '设备',
+            'card_id' => '卡号',
+            'start_data' => "起始值",
+            'expiration_time' => '截止时间',
+            'number' => '编号',
+            'device_id' => '设备ID',
+            'sort' => '排序',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '更新时间',
         ];
     }
 
-    /*
-    * 设备24小时内有无数据
-    */
-
-    public function getDeviceStatus()
+    /**
+     * 设备下拉列表
+     * 
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getDropDown()
     {
-        return DeviceValue::find()->where(['pid' => $this->id])
-            ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
-            ->exists() ? '<span class="label label-info">在线</span>' : '<span class="label label-warning">离线</span>';
+        $models = self::find()
+            ->where(['status' => StatusEnum::ENABLED])
+            ->orderBy('sort asc,created_at asc')
+            ->asArray()
+            ->all();
+
+        return ArrayHelper::map($models, 'id', 'number');
     }
 
-     /*
-    *对应产品
-    *@return Array
+    /*
+    * 设备状态(24小时内有无数据)
+    * @return html
     */
+    public function getDeviceStatus()
+    {
+        return Value::find()
+                ->where(['pid' => $this->id])
+                ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
+                ->exists() 
+            ? '<span class="label label-info">在线</span>' 
+            : '<span class="label label-warning">离线</span>';
+    }
+
+    public function getNewValue()
+    {
+        return $this->hasOne(Value::class,['pid' => 'id'])
+            ->orderBy('event_time desc');
+    }
+
+     /**
+     * 关联产品
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getProduct(){
-    	return $this->hasOne(Product::className(),['id' => 'pid']);
+    	return $this->hasOne(Product::class,['id' => 'pid']);
+    }
+
+    /**
+     * 关联命令
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDirective(){
+    	return $this->hasMany(Directive::class,['pid' => 'id'])
+            ->viaTable(Product::tableName(),['id' => 'pid']);
     }
 }

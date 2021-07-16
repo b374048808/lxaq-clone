@@ -83,8 +83,37 @@ return [
                         'v1/member/invoice',
                         'v1/member/auth',
                         'v1/member/bank-account',
-                        // 版本2
-                        'v2/default', // 默认测试入口
+                        // 客户端
+                        'v1/project/house', //房屋
+                        'v1/project/house/view',
+                        'v1/project/house/chart',   //房屋数据图表
+                        'v1/project/point', //房屋监测点
+                        'v1/project/point/view',
+                        'v1/project/ground-map',   //分组
+                        'v1/project/ground',   //分组配置
+                        'v1/project/value',   //数据
+                        'v1/log/point-warn',  //监测点报警日志
+                        'v1/datav/default',   //大屏地图点位
+                        'v1/datav/default/list',   //报警列表
+                        'v1/datav/default/chart',   //图表
+                        'v1/datav/default/house-list',   //房屋列表
+                        'v1/home/site',   //首页
+                        // 小程序
+                        'v2/default',// 默认测试入口
+                        'v2/device/value',// 华为云数据结束端口
+                        'v2/project/house', //房屋
+                        'v2/project/point', //房屋监测点
+                        'v2/project/datav', //房屋监测点
+                        'v1/project/point/view',
+                        'v1/project/ground-map',   //分组
+                        'v1/project/ground',   //分组配置
+                        'v1/project/value',   //数据
+                        'v1/log/point-warn',  //监测点报警日志
+                        'v1/datav/default',   //大屏地图点位
+                        'v1/datav/default/list',   //报警列表
+                        'v1/datav/default/chart',   //图表
+                        'v1/datav/default/house-list',   //房屋列表
+                        'v1/home/site',   //首页
                     ],
                     'pluralize' => false, // 是否启用复数形式，注意index的复数indices，开启后不直观
                     'extraPatterns' => [
@@ -95,8 +124,18 @@ return [
                         'POST register' => 'register', // 注册
                         'POST up-pwd' => 'up-pwd', // 重置密码
                         // 测试查询可删除 例如：http://www.rageframe.com/api/v1/default/search
-                        'GET search' => 'search',
+                        'GET index' => 'index', //首页
+                        'GET view' => 'view',   //详情
+                        'GET chart' => 'chart',   //详情
+                        'GET list' => 'list',   //详情
+                        'GET house-list' => 'house-list',   //详情
                         'GET qr-code' => 'qr-code', // 获取小程序码
+                        'GET dele' => 'dele',   //删除
+                        'GET delete-all' => 'delete-all',   //批量删除
+                        'POST edit' => 'edit', // 编辑
+                        'POST create' => 'create', // 创建'
+                        'POST value' => 'value', // 接受数据
+                        
                     ]
                 ],
                 [

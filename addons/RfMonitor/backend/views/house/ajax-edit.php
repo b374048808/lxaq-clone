@@ -25,7 +25,7 @@ $form = ActiveForm::begin([
                     'config' => [ // 配置同图片上传
                         // 'server' => \yii\helpers\Url::to(['file/files']), // 默认files 支持videos/voices/images方法验证
                         'pick' => [
-                            'multiple' => false,
+                            'multiple' => true,
                         ]
                     ]
                 ]); ?>

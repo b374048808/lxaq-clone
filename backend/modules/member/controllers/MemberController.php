@@ -9,6 +9,8 @@ use common\models\member\Member;
 use common\enums\StatusEnum;
 use backend\controllers\BaseController;
 use backend\modules\member\forms\RechargeForm;
+use common\enums\AppEnum;
+use backend\modules\member\forms\MemberForm;
 
 /**
  * 会员管理
@@ -67,20 +69,19 @@ class MemberController extends BaseController
      */
     public function actionAjaxEdit()
     {
-        $id = Yii::$app->request->get('id');
-        $model = $this->findModel($id);
+
+        $request = Yii::$app->request;
+        $model = new MemberForm();
+        $model->id = $request->get('id');
         $model->merchant_id = !empty($this->getMerchantId()) ? $this->getMerchantId() : 0;
-        $model->scenario = 'backendCreate';
+        $model->loadData();
+        $model->scenario = 'generalAdmin';
+
         $modelInfo = clone $model;
 
         // ajax 校验
         $this->activeFormValidate($model);
-        if ($model->load(Yii::$app->request->post())) {
-            // 验证密码
-            if ($modelInfo['password_hash'] != $model->password_hash) {
-                $model->password_hash = Yii::$app->security->generatePasswordHash($model->password_hash);
-            }
-
+        if ($model->load($request->post())) {
             return $model->save()
                 ? $this->redirect(['index'])
                 : $this->message($this->getError($model), $this->redirect(['index']), 'error');
@@ -88,6 +89,7 @@ class MemberController extends BaseController
 
         return $this->renderAjax($this->action->id, [
             'model' => $model,
+            'roles' => Yii::$app->services->rbacAuthRole->getDropDown(AppEnum::API),
         ]);
     }
 

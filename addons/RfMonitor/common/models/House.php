@@ -47,13 +47,13 @@ class House extends \common\models\base\BaseModel
     {
         return [
             'id' => 'ID',
-            'title' => 'Title',
-            'hold' => 'Hold',
-            'covers' => 'Covers',
-            'description' => 'Description',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'title' => '标题',
+            'hold' => '户主',
+            'covers' => '点位',
+            'description' => '备注',
+            'status' => '状态',
+            'created_at' => '创建时间',
+            'updated_at' => '修改时间',
         ];
     }
 }

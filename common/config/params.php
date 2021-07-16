@@ -14,7 +14,7 @@ return [
     // 是否在模块内
     'inAddon' => false,
     // 系统管理员账号id
-    'adminAccount' => '0',
+    'adminAccount' => '1',
     // 请求全局唯一ID
     'uuid' => '',
     // 真实 app id
@@ -150,4 +150,7 @@ return [
             'icon' => 'fa fa-gamepad',
         ],
     ],
+    /** ------ 374048808阿里物联网------------------- **/
+    'AccessKeyId'   => 'LTAI4FdTxTq6dod1WjWMAxbp',
+    'AccessKeySecret' => '0fXsodw45gUHuK4jpqOcKlh7skBPa4',
 ];

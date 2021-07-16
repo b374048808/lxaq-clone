@@ -3,7 +3,8 @@
 namespace common\models\monitor\project;
 
 use Yii;
-
+use common\enums\StatusEnum;
+use common\helpers\ArrayHelper;
 /**
  * This is the model class for table "rf_lx_monitor_house".
  *
@@ -81,7 +82,7 @@ class House extends \common\models\base\BaseModel
             [['cover', 'address'], 'string', 'max' => 100],
             [['mobile'], 'string', 'max' => 20],
             [['description'], 'string', 'max' => 140],
-            ['lnglat','safe']
+            ['lnglat', 'safe']
         ];
     }
 
@@ -140,5 +141,117 @@ class House extends \common\models\base\BaseModel
             'created_at' => '创建时间',
             'updated_at' => '更新时间',
         ];
+    }
+
+    /**
+     * @param bool $insert
+     * @return bool
+     * @throws \yii\base\Exception
+     */
+    public function beforeSave($insert)
+    {
+        if ($this->isNewRecord) {
+            $this->entry_id = Yii::$app->user->id;
+        }
+        if (!empty($this->lnglat)) {
+
+            // $lnglat =Map::bd_decrypt($this->lnglat['lng'],$this->lnglat['lat']);
+            $this->lng = $this->lnglat['lng'];
+            $this->lat = $this->lnglat['lat'];
+        }
+
+        return parent::beforeSave($insert);
+    }
+
+    public function getWarn()
+    {
+    	return $this->hasOne(Point::class,['pid' => 'id'])
+            ->select(['warn','pid'])
+    	    ->andWhere(['status' => StatusEnum::ENABLED])
+            ->orderBy('warn desc');
+    }
+
+    public function getPoint(){
+        return $this->hasMany(Point::class,['pid' => 'id']);
+    }
+
+    /**
+     * @param {*} $id
+     * @return {*}
+     * @throws:  返回房屋户主
+     */    
+    public static function getTitle($id)
+    {
+        $model = self::find()
+            ->where(['id' => $id])
+            ->asArray()
+            ->one();
+        return $model['title'];
+    }
+
+    /**
+     * 房屋下所有的监测点
+     * 
+     * @param n*o $id
+     * @return array
+     * @throws: 
+     */    
+    public static function getPointColumn($id, $type = null){
+        $pointModel = Point::find()
+            ->where(['pid' => $id])
+            ->andFilterWhere(['type' => $type])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+        return $pointModel?ArrayHelper::getColumn($pointModel,'id', $keepKeys = true):[];
+    }
+
+    /**
+     * @param $ground_id
+     * @param $houses
+     * @return bool
+     * @throws \yii\db\Exception
+     */
+    static public function addDatas($data)
+    {
+        $i = 0;
+        // 删除原有标签关联;
+        if (!empty($data)) {
+            $field = [
+                'title',
+                'province_id',
+                'city_id',
+                'area_id',
+                'mobile',
+                'address',
+                'year',
+                'area',
+                'height',
+                'width',
+                'length',
+                'description',
+                'lng',
+                'lat',
+                'owner',
+                'design',
+                'supervision',
+                'prospect',
+                'roadwork',
+            ];
+            $model = new self;
+            foreach ($data as $key => $value) {
+                $array_ab=array_combine($field,$value);
+                $_model = clone $model;
+                if ($_model->load($array_ab,'') && $_model->save()) {
+                    $i++;
+                }
+            }
+            
+            // 批量插入数据
+            // Yii::$app->db->createCommand()->batchInsert(self::tableName(), $field, $data)->execute();
+
+        }
+
+        return $i;
     }
 }

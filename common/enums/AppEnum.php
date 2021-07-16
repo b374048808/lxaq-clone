@@ -18,6 +18,7 @@ class AppEnum extends BaseEnum
     const OAUTH2 = 'oauth2';
     const STORAGE = 'storage';
     const CONSOLE = 'console';
+    const WORKER = 'workapi';
 
     /**
      * @return array
@@ -34,6 +35,7 @@ class AppEnum extends BaseEnum
             self::OAUTH2 => 'oauth2',
             self::STORAGE => '存储',
             self::CONSOLE => '控制台',
+            self::WORKER => '员工',
         ];
     }
 
