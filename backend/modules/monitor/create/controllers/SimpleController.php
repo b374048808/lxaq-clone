@@ -83,18 +83,7 @@ class SimpleController extends BaseController
      */
     public function actionView($id)
     {
-        // 所有时间为结束联动
-        $model = Simple::find()
-            ->where(['status' => StatusEnum::ENABLED])
-            ->andWhere(['>', 'end_time', time()])
-            ->asArray()
-            ->all();
-        foreach ($model as $key => $value) {
-            p(Yii::$app->services->createSimple->timingRand($value['id']));
-        }
-        exit;
         $model = $this->findModel($id);
-
 
         $searchModel = new SearchModel([
             'model' => Child::class,

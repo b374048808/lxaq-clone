@@ -27,6 +27,7 @@ use common\models\monitor\project\point\HuaweiMap;
  */
 class Device extends \common\models\base\BaseModel
 {
+
     /**
      * {@inheritdoc}
      */
@@ -41,12 +42,15 @@ class Device extends \common\models\base\BaseModel
     public function rules()
     {
         return [
-            [['device_id','number'],'unique'],
+            [['device_id', 'number'], 'unique'],
             [['pid', 'number'], 'required'],
-            [['pid', 'sort', 'status', 'created_at', 'updated_at','card_id'], 'integer'],
+            [['pid', 'sort', 'status', 'created_at', 'updated_at', 'switch', 'last_time'], 'integer'],
             [['device_name'], 'string', 'max' => 50],
+            [['card'], 'string', 'max' => 30],
             [['number'], 'string', 'max' => 100],
-            [['device_id'], 'string', 'max' => 255]
+            [['device_id'], 'string', 'max' => 255],
+            ['description', 'string', 'max' => 140],
+            ['over_time', 'safe']
         ];
     }
 
@@ -58,10 +62,14 @@ class Device extends \common\models\base\BaseModel
         return [
             'id' => 'ID',
             'device_name' => '设备名称',
-            'pid' => 'Pid',
-            'card_id' => '卡号',
+            'switch' => '开关',
+            'last_time' => '最后上线时间',
+            'over_time' => 'Nb卡过期时间',
+            'pid' => '产品',
+            'card' => '卡号',
             'number' => '编号',
             'device_id' => '设备ID',
+            'description' => '备注',
             'sort' => '排序',
             'status' => '状态',
             'created_at' => '创建时间',
@@ -95,23 +103,32 @@ class Device extends \common\models\base\BaseModel
             ->exists() ? '<span class="label label-info">在线</span>' : '<span class="label label-warning">离线</span>';
     }
 
+    public static function getOnline($id)
+    {
+        return Value::find()->where(['pid' => $id])
+            ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
+            ->exists();
+    }
+
     /**
      * 电量状态
      *
      * @return html
      */
-    public function getDeviceVoltage(){
-    	$model = Value::find()->where(['pid' => $this->id])->orderBy('event_time desc')->one();
-    	return ($model->value['voltage'] < 3.2 && $model->value['voltage'])?'<span class="label label-warning">电量过低</span>':'';
+    public function getDeviceVoltage()
+    {
+        $model = Value::find()->where(['pid' => $this->id])->orderBy('event_time desc')->one();
+        return ($model->value['voltage'] < 3.2 && $model->value['voltage']) ? '<span class="label label-warning">电量过低</span>' : '';
     }
 
-     /**
+    /**
      * 关联产品
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getProduct(){
-    	return $this->hasOne(Product::class,['id' => 'pid']);
+    public function getProduct()
+    {
+        return $this->hasOne(Product::class, ['id' => 'pid']);
     }
 
     /**
@@ -119,9 +136,15 @@ class Device extends \common\models\base\BaseModel
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getService(){
-    	return $this->hasMany(Service::class,['pid' => 'id'])
-            ->viaTable(Product::tableName(),['id' => 'pid']);
+    public function getService()
+    {
+        return $this->hasMany(Service::class, ['pid' => 'id'])
+            ->viaTable(Product::tableName(), ['id' => 'pid']);
+    }
+
+    public function getValue()
+    {
+        return $this->hasOne(Value::class, ['pid' => 'id']);
     }
 
     /**
@@ -129,8 +152,9 @@ class Device extends \common\models\base\BaseModel
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getDirective(){
-    	return $this->hasMany(Directive::class,['pid' => 'id'])->viaTable(Product::tableName(),['id' => 'pid']);
+    public function getDirective()
+    {
+        return $this->hasMany(Directive::class, ['pid' => 'id'])->viaTable(Product::tableName(), ['id' => 'pid']);
     }
 
 
@@ -139,8 +163,9 @@ class Device extends \common\models\base\BaseModel
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getNewValue(){
-    	return $this->hasOne(Value::class,['pid' => 'id'])
+    public function getNewValue()
+    {
+        return $this->hasOne(Value::class, ['pid' => 'id'])
             ->orderBy('event_time desc,id desc');
     }
 
@@ -152,7 +177,7 @@ class Device extends \common\models\base\BaseModel
      */
     public function getPoint()
     {
-        return $this->hasOne(Point::class,['id' => 'point_id'])
-            ->viaTable(HuaweiMap::tableName(),['device_id' => 'id']);
+        return $this->hasOne(Point::class, ['id' => 'point_id'])
+            ->viaTable(HuaweiMap::tableName(), ['device_id' => 'id']);
     }
 }

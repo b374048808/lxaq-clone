@@ -8,7 +8,9 @@ use yii\web\NotFoundHttpException;
 use common\models\rbac\AuthRole;
 use common\models\worker\Worker;
 use common\enums\AppEnum;
-
+use yii\db\ActiveQuery;
+use common\enums\StatusEnum;
+use common\helpers\RegularHelper;
 /**
  * Class WorkerForm
  * @package backend\modules\base\models
@@ -20,6 +22,8 @@ class WorkerForm extends Model
     public $password;
     public $username;
     public $role_id;
+    public $realname;
+    public $mobile;
 
     /**
      * @var \common\models\backend\Worker
@@ -37,7 +41,8 @@ class WorkerForm extends Model
     public function rules()
     {
         return [
-            [['password', 'username'], 'required'],
+            [['password', 'username','hea'], 'required'],
+            [['realname'], 'string', 'max' => 50],
             ['password', 'string', 'min' => 6],
             [
                 ['role_id'],
@@ -46,8 +51,11 @@ class WorkerForm extends Model
                 'targetClass' => AuthRole::class,
                 'targetAttribute' => ['role_id' => 'id'],
             ],
+            [['mobile'], 'string', 'max' => 20],
             [['username'], 'isUnique'],
             [['role_id'], 'required'],
+            ['mobile', 'match', 'pattern' => RegularHelper::mobile(), 'message' => '不是一个有效的手机号码'],
+            [['mobile'],'isMobile'],
         ];
     }
 
@@ -60,6 +68,8 @@ class WorkerForm extends Model
             'password' => '登录密码',
             'username' => '登录名',
             'role_id' => '角色',
+            'realname'  => '真实姓名',
+            'mobile'    => '手机号码'
         ];
     }
 
@@ -71,6 +81,8 @@ class WorkerForm extends Model
         if ($this->worker = Yii::$app->services->backendWorker->findByIdWithAssignment($this->id)) {
             $this->username = $this->worker->username;
             $this->password = $this->worker->password_hash;
+            $this->realname = $this->worker->realname;
+            $this->mobile = $this->worker->mobile;
         } else {
             $this->worker = new Worker();
         }
@@ -86,7 +98,7 @@ class WorkerForm extends Model
     public function scenarios()
     {
         return [
-            'default' => ['username', 'password'],
+            'default' => ['username', 'password','realname','mobile'],
             'generalAdmin' => array_keys($this->attributeLabels()),
         ];
     }
@@ -102,6 +114,13 @@ class WorkerForm extends Model
         }
     }
 
+    public function isMobile(){
+        $worker = Worker::findOne(['mobile' => $this->mobile]);
+        if($worker && $worker->id != $this->id){
+            $this->addError('mobile', '手机号码已经被占用');
+        }
+    }
+
     /**
      * @return bool
      * @throws \yii\db\Exception
@@ -109,23 +128,6 @@ class WorkerForm extends Model
     public function save()
     {
         $transaction = Yii::$app->db->beginTransaction();
-        $worker = $this->worker;
-        if ($worker->isNewRecord) {
-            $worker->last_ip = '0.0.0.0';
-            $worker->last_time = time();
-        }
-        $worker->username = $this->username;
-
-        // 验证密码是否修改
-        if ($this->worker->password_hash != $this->password) {
-            $worker->password_hash = Yii::$app->security->generatePasswordHash($this->password);
-        }
-
-        if (!$worker->save()) {
-            
-            $this->addErrors($worker->getErrors());
-            throw new NotFoundHttpException('用户编辑错误');
-        }
         try {
             $worker = $this->worker;
             if ($worker->isNewRecord) {
@@ -133,6 +135,8 @@ class WorkerForm extends Model
                 $worker->last_time = time();
             }
             $worker->username = $this->username;
+            $worker->realname = $this->realname;
+            $worker->mobile = $this->mobile;
 
             // 验证密码是否修改
             if ($this->worker->password_hash != $this->password) {

@@ -68,7 +68,8 @@
         "omnipay/stripe": "^3.1",
         "stomp-php/stomp-php": "^5.0",
         "alibabacloud/sdk": "^1.8",
-        "phpoffice/phpword": "^0.18.1"
+        "phpoffice/phpword": "^0.18.1",
+        "yiisoft/yii2-httpclient": "^2.0"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-29 10:33:56
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-05-10 14:49:40
+ * @LastEditTime: 2022-02-21 16:51:16
  * @Description: 
  */
 
@@ -14,6 +14,8 @@ use common\enums\PointEnum;
 use common\enums\StatusEnum;
 use common\enums\NewsEnum;
 use common\enums\WarnEnum;
+use common\enums\device\SwitchEnum;
+use common\enums\monitor\WarnTypeEnum;
 
 $form = ActiveForm::begin([
     'id' => $model->formName(),
@@ -33,6 +35,7 @@ $form = ActiveForm::begin([
 <div class="modal-body">
     <?= $form->field($model, 'type')->dropDownList(PointEnum::getMap()) ?>
     <?= $form->field($model, 'title')->textInput() ?>
+    <?= $form->field($model, 'warn_type')->dropDownList(WarnTypeEnum::getMap()) ?>
     <?= $form->field($model, 'initial_value')->textInput() ?>
     <?= $form->field($model, 'covers')->widget(Files::class, [
         'config' => [
@@ -47,6 +50,7 @@ $form = ActiveForm::begin([
     <?= $form->field($model, 'description')->textarea() ?>
     <?= $form->field($model, 'warn')->radioList(WarnEnum::getMap()) ?>
     <?= $form->field($model, 'sort')->textInput() ?>
+    <?= $form->field($model, 'warn_switch')->radioList(SwitchEnum::getMap()) ?>
     <?= $form->field($model, 'status')->radioList(StatusEnum::getMap()) ?>
 </div>
 <div class="modal-footer">

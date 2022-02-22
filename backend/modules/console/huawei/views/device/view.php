@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-14 10:44:37
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-16 09:22:49
+ * @LastEditTime: 2022-02-18 15:32:46
  * @Description: 
  */
 
@@ -61,12 +61,31 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                 </li>
             </ul>
             <div class="box-body">
+                <div class="box-header">
+                    <h3 class="box-title"><?= Html::switch($model['switch']) ?></h3>
+                </div>
                 <table class="table table-hover">
                     <tr>
                         <td>设备识别码</td>
-                        <td><?= $model->number ?></td>
+                        <td><?= $model['number'] ?></td>
                         <td>第三方IOT-ID</td>
-                        <td><?= $model->device_id ?></td>
+                        <td><?= $model['device_id'] ?></td>
+                    </tr>
+                    <tr>
+                        <td>状态</td>
+                        <td><?= $model['deviceStatus'] . ' ' . $model['deviceVoltage'] ?></td>
+                        <td>最后上线时间</td>
+                        <td><?= $model['last_time'] ? date('Y-m-d', $model['last_time']) : '' ?></td>
+                    </tr>
+                    <tr>
+                        <td>卡号</td>
+                        <td><?= $model['card'] ?></td>
+                        <td>过期时间</td>
+                        <td><?= $model['over_time'] ? date('Y-m-d', $model['over_time']) : '' ?></td>
+                    </tr>
+                    <tr>
+                        <td>备注</td>
+                        <td colspan="3"><?= $model['description'] ?></td>
                     </tr>
                 </table>
             </div>
@@ -108,10 +127,14 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                     </tr>
                     <?php foreach ($pointModel as $key => $value) : ?>
                         <tr>
-                            <td><?= Html::a($value['house']['title'], ['/monitor-project/house/view', 'id' => $value['pid']], $options = []) ?></td>
-                            <td><?= Html::a($value['title'], ['/monitor-project/point/view', 'id' => $value['id']], $options = []) ?></td>
+                            <td><?= Html::a($value['house']['title'], ['/monitor-project/house/view', 'id' => $value['pid']], $options = [
+                                    'class' => 'openContab'
+                                ]) ?></td>
+                            <td><?= Html::a($value['title'], ['/monitor-project/point/view', 'id' => $value['id']], $options = [
+                                    'class' => 'openContab'
+                                ]) ?></td>
                             <td><?= $value['newValue']['value'] ?></td>
-                            <td><?= $value['newValue']['event_time']?date('Y-m-d H:i:s', $value['newValue']['event_time']):'--' ?></td>
+                            <td><?= $value['newValue']['event_time'] ? date('Y-m-d H:i:s', $value['newValue']['event_time']) : '--' ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </table>

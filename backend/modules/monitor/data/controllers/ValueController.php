@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-06 10:27:19
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-30 14:57:35
+ * @LastEditTime: 2022-02-21 18:38:55
  * @Description: 
  */
 
@@ -13,11 +13,15 @@ use Yii;
 use common\traits\Curd;
 use backend\controllers\BaseController;
 use common\enums\StatusEnum;
+use common\enums\ValueStateEnum;
+use common\enums\ValueTypeEnum;
+use common\enums\WarnEnum;
 use common\models\base\SearchModel;
 use common\models\monitor\project\log\ValueLog;
 use common\models\monitor\project\point\Value;
 use common\models\monitor\project\Point;
 use yii\data\Pagination;
+
 /**
  * 产品
  *
@@ -38,7 +42,7 @@ class ValueController extends BaseController
      * 
      * @return mixed
      */
-    
+
     public function actionIndex($state)
     {
         $searchModel = new SearchModel([
@@ -56,8 +60,8 @@ class ValueController extends BaseController
         $dataProvider = $searchModel
             ->search(Yii::$app->request->queryParams);
         $dataProvider->query
-            ->andWhere([Value::tableName().'.state' => $state])
-            ->andWhere(['>', Value::tableName().'.status', StatusEnum::DISABLED]);
+            ->andWhere([Value::tableName() . '.state' => $state])
+            ->andWhere(['>', Value::tableName() . '.status', StatusEnum::DISABLED]);
         return $this->render($this->action->id, [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
@@ -104,8 +108,8 @@ class ValueController extends BaseController
             ->orderBy('id desc')
             ->asArray()
             ->all();
-        
-        return $this->renderAjax('view',[
+
+        return $this->renderAjax('view', [
             'model' => $model,
             'log'   => $logModel,
         ]);
@@ -149,6 +153,31 @@ class ValueController extends BaseController
         ]);
     }
 
+    public function actionUpdateAll()
+    {
+        $request = Yii::$app->request;
+
+        $ids = $request->post('data', []);
+        $warn = $request->post('warn', null);
+        $state = $request->post('state', ValueStateEnum::ENABLED);
+        Yii::$app->response->format =  yii\web\Response::FORMAT_JSON;
+        if ($warn) {
+            return Value::updateAll(['warn' => WarnEnum::SUCCESS], ['in', 'id', $ids]);
+        } else if ($state) {
+            return Value::updateAll(['state' => $state], ['in', 'id', $ids]);
+        }
+        return true;
+    }
+
+    public function actionDeleteAll()
+    {
+        $request = Yii::$app->request;
+
+        $ids = $request->post('data', []);
+
+        return Value::updateAll(['status' => StatusEnum::DELETE], ['in', 'id', $ids]);
+    }
+
     /**
      * 审核
      *
@@ -170,17 +199,13 @@ class ValueController extends BaseController
                 // 触发监测点报警
                 $pointModel->warn = $model->warn;
                 $pointModel->save();
-                
-
             }
             return $model->save()
                 ? $this->redirect(Yii::$app->request->referrer)
-                : $this->message($this->getError($model),$this->redirect(Yii::$app->request->referrer), 'error');
+                : $this->message($this->getError($model), $this->redirect(Yii::$app->request->referrer), 'error');
         }
         return $this->renderAjax('ajax-state', [
             'model' => $model,
         ]);
     }
-    
-    
 }

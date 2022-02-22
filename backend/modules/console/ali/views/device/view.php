@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-22 10:21:59
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-30 10:39:57
+ * @LastEditTime: 2021-07-20 10:50:12
  * @Description: 
  */
 
@@ -54,8 +54,12 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                         </tr>
                         <?php foreach ($pointModel as $key => $value) : ?>
                             <tr>
-                                <td><?= Html::a($value['house']['title'], ['/monitor-project/house/view', 'id' => $value['pid']], $options = []) ?></td>
-                                <td><?= Html::a($value['title'], ['/monitor-project/point/view', 'id' => $value['id']], $options = []) ?></td>
+                            <td><?= Html::a($value['house']['title'], ['/monitor-project/house/view', 'id' => $value['pid']], $options = [
+                                'class' => 'openContab'
+                            ]) ?></td>
+                            <td><?= Html::a($value['title'], ['/monitor-project/point/view', 'id' => $value['id']], $options = [
+                                'class' => 'openContab'
+                            ]) ?></td>
                                 <td><?= $value['newValue']['value'] ?></td>
                                 <td><?= $value['newValue']['event_time']?date('Y-m-d H:i:s', $value['newValue']['event_time']):'--' ?></td>
                             </tr>

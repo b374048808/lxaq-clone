@@ -45,7 +45,7 @@ class AccessTokenService extends Service
     public function getAccessToken(Worker $worker, $group, $cycle_index = 1)
     {
         $model = $this->findModel($worker->id, $group);
-        $model->worker_id = $worker->id;
+        $model->member_id = $worker->id;
         $model->group = $group;
         // 删除缓存
         !empty($model->access_token) && Yii::$app->cache->delete($this->getCacheKey($model->access_token));
@@ -150,9 +150,9 @@ class AccessTokenService extends Service
     protected function findModel($worker_id, $group)
     {
         if (empty(($model = AccessToken::find()->where([
-            'worker_id' => $worker_id,
+            'member_id' => $worker_id,
             'group' => $group
-        ])->andFilterWhere(['merchant_id' => $this->getMerchantId()])->one()))) {
+        ])->one()))) {
             $model = new AccessToken();
             return $model->loadDefaultValues();
         }

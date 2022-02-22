@@ -3,9 +3,10 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-21 10:37:18
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-01 18:42:26
+ * @LastEditTime: 2021-07-20 09:27:35
  * @Description: 阿里数据解析添加
  */
+
 namespace common\queues;
 
 use Yii;
@@ -18,16 +19,16 @@ use common\models\monitor\project\point\AliMap;
 
 class AliValueJob extends BaseObject implements \yii\queue\JobInterface
 {
-	public $data;   //body内数据
-	
-	public $message;    //整体数据
+    public $data;   //body内数据
 
-	
-	public function execute($queue)
-	{
+    public $message;    //整体数据
+
+
+    public function execute($queue)
+    {
         $message = $this->message;
         $destination = $message['destination'];     //消息
-        $eventTime = $message['generateTime']/1000;     //时间戳需要除1000
+        $eventTime = $message['generateTime'] / 1000;     //时间戳需要除1000
         $device_id = $destination ? explode('/', $destination) : [];
         $productKey = $device_id[1];
         $deviceId = $device_id[2];
@@ -46,20 +47,24 @@ class AliValueJob extends BaseObject implements \yii\queue\JobInterface
         if (!$deviceModel) {
             return false;
         }
-        
+
         $deviceValue = AliValueTypeEnum::onValue($this->data);    //数据解析设备数据
-        // 有设置初始值-当前设备数据
-        $pointValue = $deviceModel['start_data']?$deviceModel['start_data'] - $deviceValue:$deviceValue;
-        // 所有关联监测点
-        $pointIds = AliMap::getPointColumn($deviceModel['id']);
-        // 所有监测点添加数据
-        try {
-            foreach ($pointIds as $value) {
-                Yii::$app->services->pointValue->setValue($value, $pointValue, $eventTime);
+
+        if (strlen($this->data) == 18) {
+            // 数据是否添加
+            // 有设置初始值-当前设备数据
+            $pointValue = $deviceModel['start_data'] ? $deviceModel['start_data'] - $deviceValue : $deviceValue;
+            // 所有关联监测点
+            $pointIds = AliMap::getPointColumn($deviceModel['id']);
+            // 所有监测点添加数据
+            try {
+                foreach ($pointIds as $value) {
+                    Yii::$app->services->pointValue->setValue($value, $pointValue, $eventTime);
+                }
+                //code...
+            } catch (\Throwable $th) {
+                throw $th;
             }
-            //code...
-        } catch (\Throwable $th) {
-            throw $th;
         }
         // 设备数据添加
         $data = [
@@ -73,8 +78,7 @@ class AliValueJob extends BaseObject implements \yii\queue\JobInterface
             'event_time' => $message['generateTime'],
             'body' => $this->data,
         ];
-        // 数据是否添加
+        // 数据类型消息
         Yii::$app->services->aliValue->setValue($data);
-        
-	}
+    }
 }

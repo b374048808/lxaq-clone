@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-10 10:46:17
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-05-27 17:14:10
+ * @LastEditTime: 2021-07-21 16:36:44
  * @Description: 
  */
 
@@ -18,6 +18,7 @@ use common\helpers\ArrayHelper;
 use api\controllers\BaseController;
 use common\enums\PointEnum;
 use common\enums\ValueStateEnum;
+use common\models\monitor\project\point\Value;
 
 /**
  * 房屋控制器
@@ -46,19 +47,15 @@ class PointController extends BaseController
      *
      * @return ActiveDataProvider
      */
-    public function actionIndex($pid, $page = 1, $limit = 20)
+    public function actionIndex($pid)
     {
-
-        $request = Yii::$app->request;
-        $title = $request->get('title' . NULL);
         $query = Point::find()
             ->where(['pid' => $pid])
             ->andWhere(['=', 'status', StatusEnum::ENABLED]);
-        $pages = new Pagination(['totalCount' => $query->count(), 'pageSize' => $limit = 20]);
-        $model = $query->offset($pages->offset)->limit($pages->limit)->asArray()->all();
+        $model = $query
+            ->asArray()->all();
         foreach ($model as $key => &$value) {
-            $typeModel = PointEnum::getModel($value['type']);
-            $data = $typeModel::find()
+            $data = Value::find()
                 ->where(['pid' => $value['id']])
                 ->andWhere(['state' => ValueStateEnum::ENABLED])
                 ->andWhere(['status' => StatusEnum::ENABLED])
@@ -66,8 +63,8 @@ class PointController extends BaseController
                 ->asArray()
                 ->one();
             $value['newValue'] = $data ? $data['value'] : 0;
-            $prevData = $typeModel::getPrev($data['id']);
-            $value['yesterValue'] = $prevData ? $prevData['value'] : 0;
+            $prevData = Value::getPrevValue($data['id']);
+            $value['yesterValue'] = $prevData ? $prevData : 0;
             # code...
         }
         $model = ArrayHelper::index($model, null, 'type');
@@ -121,11 +118,10 @@ class PointController extends BaseController
 
         // 监测点类型数据
         $startTime = date('Y-m-1');
-        $typeModel = PointEnum::getModel($model['type']);
         array_push($info['legend'], '数据');
         $data = [];
         for ($j = strtotime('-3 month', strtotime($startTime)); $j < time(); $j += 60 * 60 * 24) {
-            $dataModel = $typeModel::find()
+            $dataModel = Value::find()
                 ->where(['pid' => $id])
                 ->andWhere(['between', 'event_time', $j, $j + 60 * 60 * 24])
                 ->andWhere(['state' => ValueStateEnum::ENABLED])

@@ -68,6 +68,10 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                         <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse<?= $key ?>" aria-expanded="<?= $key == 0 ? true : false; ?>" aria-controls="collapse<?= $key ?>">
                                             <?= $value['title'] ?>
                                         </a>
+                                        <?= Html::a('<i class="fa fa-edit blue" style="font-size:8px"></i>',['/console-huawei/service/ajax-edit', 'id' => $value['id']], [
+                                            'data-toggle' => 'modal',
+                                            'data-target' => '#ajaxModalLg',
+                                        ]) ?>
                                         <?= Html::a('删除服务', ['/console-huawei/service/delete', 'id' => $value['id']], $options = ['onclick' => "rfDelete(this);return false;", 'class' => 'red panel-delete-right']) ?>
                                     </h4>
                                 </div>

@@ -3,10 +3,12 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-26 11:18:34
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-15 17:47:30
+ * @LastEditTime: 2022-02-14 10:19:14
  * @Description: 
  */
 
+use common\enums\monitor\ItemStepsEnum;
+use common\enums\VerifyEnum;
 use common\helpers\BaseHtml;
 use yii\grid\GridView;
 use common\helpers\Html;
@@ -17,13 +19,21 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
 ?>
 
 <div class="row">
+
     <div class="col-xs-12">
         <div class="box">
             <div class="box-header">
                 <h3 class="box-title"><?= $this->title; ?></h3>
                 <div class="box-tools">
-                    <?= BaseHtml::create(['edit']) ?>                    
-                    <?= BaseHtml::linkButton(['recycle'], '<i class="fa fa-trash"></i> 回收站'); ?>
+                    <?= Html::linkButton(['/monitor-project/steps-member/index'], '<i class="fa fa-users"></i>步骤负责人', $options = []) ?>
+                    <?= Html::linkButton(['export'], '导出', $options = [
+                        'data-toggle' => 'modal',
+                        'data-target' => '#ajaxModalLg',
+                    ]) ?>
+                    <?= Html::create(['edit'], '创建', [
+                        'class' => 'btn btn-white btn-sm'
+                    ]) ?>
+                    <?= Html::linkButton(['recycle'], '<i class="fa fa-trash"></i> 回收站'); ?>
                 </div>
             </div>
             <div class="box-body table-responsive">
@@ -38,11 +48,30 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                         ],
                         [
                             'attribute' => 'title',
-                            'value' => function($queue)
-                            {
-                                return Html::a($queue['title'], ['view','id' => $queue['id']], $options = []);
+                            'value' => function ($queue) {
+                                return Html::a($queue['title'], ['view', 'id' => $queue['id']], $options = []);
                             },
                             'filter' => true, //不显示搜索框
+                            'format' => 'html',
+                        ],
+                        [
+                            'header' => '发布者',
+                            'attribute' => 'user.realname',
+                        ],
+                        [
+                            'attribute' => 'audit',
+                            'value' => function ($queue) {
+                                return VerifyEnum::html($queue['audit']);
+                            },
+                            'filter' => VerifyEnum::getMap(), //不显示搜索框
+                            'format' => 'html',
+                        ],
+                        [
+                            'attribute' => 'steps',
+                            'value' => function ($queue) {
+                                return ItemStepsEnum::getValue($queue['steps']);
+                            },
+                            'filter' => ItemStepsEnum::getMap(), //不显示搜索框
                             'format' => 'html',
                         ],
                         [
@@ -53,8 +82,17 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                         [
                             'header' => "操作",
                             'class' => 'yii\grid\ActionColumn',
-                            'template' => '{edit} {destroy}',
+                            'template' => '{audit} {view} {edit} {destroy}',
                             'buttons' => [
+                                'audit' => function ($url, $model, $key) {
+                                    return BaseHtml::linkButton(['ajax-audit', 'id' => $model->id], '状态', [
+                                        'data-toggle' => 'modal',
+                                        'data-target' => '#ajaxModalLg',
+                                    ]);
+                                },
+                                'view' => function ($url, $model, $key) {
+                                    return BaseHtml::linkButton(['view', 'id' => $model->id], '详情');
+                                },
                                 'edit' => function ($url, $model, $key) {
                                     return BaseHtml::edit(['edit', 'id' => $model->id]);
                                 },

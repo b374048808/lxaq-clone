@@ -7,14 +7,10 @@ use backend\forms\ClearCache;
 use common\helpers\ResultHelper;
 use backend\controllers\BaseController;
 use common\enums\monitor\BellStateEnum;
-use common\enums\monitor\SubscriptionActionEnum;
-use common\enums\monitor\SubscriptionReasonEnum;
 use common\enums\StatusEnum;
 use common\enums\ValueStateEnum;
 use common\enums\WarnEnum;
 use common\enums\WarnStateEnum;
-use common\models\monitor\project\House;
-use common\models\monitor\project\Point;
 use common\models\monitor\project\point\AliMap;
 use common\models\monitor\project\point\HuaweiMap;
 use common\helpers\ArrayHelper;
@@ -90,9 +86,10 @@ class MainController extends BaseController
             ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
             ->groupBy('pid')
             ->count();
+        
         $aliOnlineCount = AliValue::find()
             ->where(['status' => StatusEnum::ENABLED])
-            ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
+            ->andWhere(['between', 'event_time', strtotime('-1 day')*1000, time()*1000])
             ->groupBy('pid')
             ->count();
         $deviceAll['online'] = $huaweiOnlineCount + $aliOnlineCount;
@@ -135,6 +132,15 @@ class MainController extends BaseController
             ->asArray()
             ->all();
 
+        // 最新数据
+        $ValueModel = PointValue::find()
+            ->with(['parent','house'])
+            ->where(['status' => StatusEnum::ENABLED])
+            ->limit(6)
+            ->orderBy('id desc')
+            ->asArray()
+            ->all();
+
         return $this->render($this->action->id, [
             'pointCount'    => $pointCount,
             'warn'  => $warn,
@@ -143,7 +149,8 @@ class MainController extends BaseController
             'valueCount'    => $valueCount,
             'bell' => $bell,
             'card'  => $card,
-            'notify'    => $notifyModel
+            'notify'    => $notifyModel,
+            'valueList' => $ValueModel
         ]);
     }
 

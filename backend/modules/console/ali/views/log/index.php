@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-22 08:45:00
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-16 08:52:15
+ * @LastEditTime: 2021-07-20 15:47:27
  * @Description: 
  */
 use common\helpers\BaseHtml as Html;
@@ -31,14 +31,14 @@ $this->params['breadcrumbs'][] = ['label' =>  $this->title];
                             ],
                             [
                                 'header' => '所属产品',
-                                'attribute' => 'product_name',
+                                'attribute' => 'product.name',
                                 'value' => 'product.name',
                                 'filter' => true, //不显示搜索框
                                 'format' => 'html',
                             ],
                             [
                                 'header' => '所属设备',
-                                'attribute' => 'device_number',
+                                'attribute' => 'device.number',
                                 'value' => 'device.number',
                                 'filter' => true, //不显示搜索框
                                 'format' => 'html',

@@ -70,6 +70,13 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             'format' => 'raw',
                         ],
                         [
+                            'header' => '消息管理',
+                            'value' => function($model){
+                                return Html::a('点击进入',['/wnotify/remind','id' => $model['id']], $options = []);
+                            },
+                            'format' => 'html'
+                        ],
+                        [
                             'header' => "操作",
                             'contentOptions' => ['class' => 'text-align-center'],
                             'class' => 'yii\grid\ActionColumn',
@@ -83,7 +90,9 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                         ]) . '<br>';
                                 },
                                 'role' => function ($url, $model, $key) {
-                                    return Html::a('角色管理', ['auth-role/index', 'merchant_id' => $model->id], [
+                                    return Html::a('角色分配', ['role', 'id' => $model->id], [
+                                        'data-toggle' => 'modal',
+                                            'data-target' => '#ajaxModal',
                                         'class' => 'purple',
                                     ]) . '<br>';
                                 },

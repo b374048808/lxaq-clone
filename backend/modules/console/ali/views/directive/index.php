@@ -3,11 +3,11 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-22 15:49:19
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-24 10:17:45
+ * @LastEditTime: 2021-07-20 14:55:04
  * @Description: 
  */
 
-use common\helpers\Html;
+use common\helpers\BaseHtml as Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 
@@ -54,8 +54,14 @@ $this->params['breadcrumbs'][] = ['label' =>  $this->title];
                             [
                                 'header' => "操作",
                                 'class' => 'yii\grid\ActionColumn',
-                                'template' => '{status} {delete}',
+                                'template' => '{edit} {status} {delete}',
                                 'buttons' => [
+                                    'edit' => function($url, $model, $key){
+                                        return Html::edit(['ajax-edit', 'id' => $model['id']], '编辑', [
+                                            'data-toggle' => 'modal',
+                                            'data-target' => '#ajaxModalLg',
+                                        ]);
+                                    },
                                     'status' => function ($url, $model, $key) {
                                         return Html::status($model->status);
                                     },

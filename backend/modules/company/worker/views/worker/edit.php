@@ -1,8 +1,16 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-12 10:44:53
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-11-05 10:12:32
+ * @Description: 
+ */
 
 use yii\widgets\ActiveForm;
 use common\enums\GenderEnum;
 use common\enums\StatusEnum;
+use kartik\select2\Select2;
 
 $this->title = '编辑';
 $this->params['breadcrumbs'][] = ['label' => '会员信息', 'url' => ['index']];
@@ -21,6 +29,13 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                 ],
             ]); ?>
             <div class="box-body">
+                <?= $form->field($model, 'dept_id')->widget(Select2::class, [
+                    'data' => $depts,
+                    'options' => ['placeholder' => '请选择'],
+                    'pluginOptions' => [
+                        'allowClear' => true
+                    ],
+                ]);?>
                 <?= $form->field($model, 'realname')->textInput() ?>
                 <?= $form->field($model, 'nickname')->textInput() ?>
                 <?= $form->field($model, 'mobile')->textInput() ?>

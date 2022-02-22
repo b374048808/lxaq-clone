@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-29 15:26:55
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-15 15:10:58
+ * @LastEditTime: 2021-07-22 17:06:06
  * @Description: 
  */
 
@@ -12,6 +12,7 @@ use common\helpers\Url;
 use common\enums\ValueTypeEnum;
 use common\enums\WarnEnum;
 use common\enums\StatusEnum;
+use common\enums\ValueStateEnum;
 
 $form = ActiveForm::begin([
     'id' => $model->formName(),
@@ -43,6 +44,7 @@ $form = ActiveForm::begin([
         ]
     ]); ?>
     <?= $form->field($model, 'warn')->dropDownList(WarnEnum::getMap()) ?>
+    <?= $form->field($model, 'state')->radioList(ValueStateEnum::getMap()) ?>
     <?= $form->field($model, 'type')->radioList(ValueTypeEnum::getMap()) ?>
     <?= $form->field($model, 'status')->radioList(StatusEnum::getMap()) ?>
 

@@ -1,6 +1,7 @@
 <?php
 
 use common\enums\BellEnum;
+use common\enums\device\SwitchEnum;
 use common\enums\NewsEnum;
 use common\enums\PointEnum;
 use common\helpers\Url;
@@ -11,8 +12,13 @@ use yii\grid\GridView;
 use common\enums\JudgeEnum;
 use common\enums\monitor\BellEnum as MonitorBellEnum;
 use common\enums\monitor\BellStateEnum;
+use common\enums\monitor\ReportEnum;
 use common\enums\StatusEnum;
 use common\enums\WarnEnum;
+use common\enums\ValueStateEnum;
+use common\enums\ValueTypeEnum;
+use common\helpers\BaseHtml;
+use common\models\monitor\project\point\Value;
 
 $this->title = $model['title'];
 $this->params['breadcrumbs'][] = ['label' => '房屋列表', 'url' => ['index']];
@@ -37,47 +43,41 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
 <div class="row">
     <div class="col-xs-12">
         <div class="nav-tabs-custom">
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="#">概况</a></li>
-                <li><a href="<?= Url::to(['/monitor-project/point/index', 'pid' => $model['id']], $schema = true) ?>">监测点</a></li>
-                <li><a href="<?= Url::to(['monitor', 'id' => $model['id']], $schema = true) ?>">实时监测</a></li>
-                <li><a href="<?= Url::to(['data-chart', 'id' => $model['id']], $schema = true) ?>">数据曲线</a></li>
-                <li><a href="<?= Url::to(['report', 'id' => $model['id']], $schema = true) ?>">报告</a></li>
-                <li class="pull-right">
-                    <?= Html::edit(['edit', 'id' => $model['id']], '<i class="fa fa-edit"></i>编辑'); ?>
-                </li>
-            </ul>
+            <div class="box-header">
+                <i class="fa fa-circle blue" style="font-size: 8px"></i>
+                <h3 class="box-title">概况</h3>
+                <a href="<?= Url::to(['edit', 'id' => $model['id']], $schema = true) ?>" ,>
+                    <i class="fa fa-edit blue" style="font-size: 12px"></i>
+                </a>
+                <div class="box-tools">
+                    <?= Html::linkButton(['data-chart', 'id' => $model['id']], '数据曲线') ?>
+                </div>
+            </div>
             <div class="box-body table-responsive">
-                <div class="col-md-8 col-xs-12">
+                <div class="col-md-8 col-xs-12" style="border-right:1px solid #f1f1f1">
                     <table class="table table-hover">
-                        <tr>
-                            <td style="max-width: 160px;height:144px;text-align: center;" colspan="2" rowspan="5">
-                                <?php if (isset($model->cover)) : ?>
-                                    <?= ImageHelper::fancyBox($model->cover, 'auto', '100%'); ?>
-                                <?php endif; ?>
-                            </td>
-
-                        </tr>
                         <tr>
                             <td>户主</td>
                             <td><?= $model->title ?></td>
-                        </tr>
-                        <tr>
                             <td>联系方式</td>
                             <td><?= $model->mobile ?></td>
                         </tr>
                         <tr>
                             <td>年代</td>
                             <td><?= $model->year ?></td>
-                        </tr>
-                        <tr>
                             <td>面积</td>
                             <td><?= $model->area ?></td>
                         </tr>
                         <tr>
+                            <td>层数</td>
+                            <td>
+                                <?= $model->layer ?>
+                            </td>
+                        </tr>
+                        <tr>
                             <td>性质</td>
                             <td><?= StructEnum::natureMap()[$model->nature] ?></td>
-                            <td>层数</td>
+                            <td>地址</td>
                             <td><?= $model->address ?></td>
                         </tr>
                         <tr>
@@ -97,14 +97,12 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             <td><?= $model->basement ? '有' : '无' ?></td>
                             <td>圈梁</td>
                             <td><?= $model->beam ? '有' : '无' ?></td>
-
                         </tr>
                         <tr>
                             <td>构造柱</td>
                             <td><?= $model->column ? '有' : '无' ?></td>
                             <td>业主单位</td>
                             <td><?= $model->owner ?></td>
-
                         </tr>
                         <tr>
                             <td>监理单位</td>
@@ -118,15 +116,9 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             <td>设计单位</td>
                             <td><?= $model->design ?></td>
                         </tr>
-                    </table>
-                </div>
-                <div class="col-xs-12 col-md-4">
-                    <table class="table">
                         <tr>
                             <td>长×宽×高</td>
                             <td><?= $model->length . '×' . $model->width . '×' . $model->height  ?></td>
-                        </tr>
-                        <tr>
                             <td>示意图</td>
                             <td>
                                 <?php foreach ($model->hint_cover ?: [] as $key => $value) : ?>
@@ -141,8 +133,6 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                     <?= ImageHelper::fancyBox($value); ?>
                                 <?php endforeach; ?>
                             </td>
-                        </tr>
-                        <tr>
                             <td>片面图</td>
                             <td>
                                 <?php foreach ($model->plan_cover ?: [] as $key => $value) : ?>
@@ -157,8 +147,6 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                     <?= ImageHelper::fancyBox($value); ?>
                                 <?php endforeach; ?>
                             </td>
-                        </tr>
-                        <tr>
                             <td>沉降点位示意图</td>
                             <td>
                                 <?php foreach ($model->settling_cover ?: [] as $key => $value) : ?>
@@ -175,8 +163,6 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                 <?php endforeach; ?>
 
                             </td>
-                        </tr>
-                        <tr>
                             <td>平顶位移点位示意图</td>
                             <td>
                                 <?php foreach ($model->move_cover ?: [] as $key => $value) : ?>
@@ -186,22 +172,38 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             </td>
                         </tr>
                     </table>
+                    <?php foreach ($points as $key => $value) : ?>
+                        <div class="box box-solid">
+                            <div class="box-header">
+                                <i class="fa fa-area-chart blue" style="font-size: 8px"></i>
+                                <h3 class="box-title"><?= PointEnum::getValue($value) ?></h3>
+                            </div>
+                            <div class="box-body">
+                                <?= \common\widgets\echarts\Echarts::widget([
+                                    'config' => [
+                                        'server' => Url::to(['point-between-count', 'point_type' => $value, 'id' => $model['id']]),
+                                        'height' => '315px'
+                                    ]
+                                ]) ?>
+                                <!-- /.box-body -->
+                            </div>
+                            <!-- /.box -->
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6 col-xs-12">
+                <div class="col-xs-12 col-md-4">
                     <div class="box">
                         <div class="box-header">
                             <i class="fa fa-warning blue" style="font-size: 8px"></i>
                             <h3 class="box-title">报警触发器</h3>
                             <div class="box-tools">
-                                <?= Html::create(['/monitor-project/rule-item/ajax-edit', 'pid' => $model['id']], '添加触发器', [
+                                <?= Html::create(['/monitor-project/rule-item/ajax-edit', 'pid' => $model['id']], '创建', [
                                     'data-toggle' => 'modal',
                                     'data-target' => '#ajaxModal',
                                 ]) ?>
                             </div>
                         </div>
-                        <div class="box-body table-responsive">
+                        <div class="box-body table-responsive" style="font-size:8px">
                             <?= GridView::widget([
                                 'dataProvider' => $dataProvider,
                                 'filterModel' => $searchModel,
@@ -262,103 +264,162 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             ]); ?>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6 col-xs-12">
                     <div class="box">
                         <div class="box-header">
-                            <i class="fa fa-bell blue" style="font-size: 8px"></i>
-                            <h3 class="box-title">提醒列表</h3>
+                            <i class="fa fa-list-alt blue" style="font-size: 8px"></i>
+                            <h3 class="box-title">点位数据</h3>
                             <div class="box-tools">
-                                <?= Html::create(['/monitor-project/bell/ajax-edit', 'pid' => $model['id']], '添加触发器', [
-                                    'data-toggle' => 'modal',
-                                    'data-target' => '#ajaxModal',
-                                ]) ?>
+                                <?= Html::a('<i class="fa fa-ellipsis-h"></i>', ['/monitor-project/house/value-list', 'id' => $model['id']]) ?>
                             </div>
                         </div>
                         <div class="box-body table-responsive">
-                            <?= GridView::widget([
-                                'dataProvider' => $bellProvider,
-                                //重新定义分页样式
-                                'tableOptions' => ['class' => 'table table-hover'],
-                                'columns' => [
-                                    [
-                                        'class' => 'yii\grid\SerialColumn',
-                                    ],
-                                    [
-                                        'attribute' => 'user.username',
-                                    ],
-                                    [
-                                        'attribute' => 'type',
-                                        'value' => function ($que) {
-                                            return MonitorBellEnum::getValue($que['type']);
-                                        },
-                                        'format' => 'html',
-                                    ],
-                                    [
-                                        'attribute' => 'event_time',
-                                        'format' => ['date', 'php:Y-m-d'], //不显示搜索框
-                                    ],
-                                    
-                                    [
-                                        'attribute' => 'state',
-                                        'value' => function ($que) {
-                                            return BellStateEnum::getValue($que['state']);
-                                        },
-                                    ],
-                                    'description',
-                                    [
-                                        'header' => "操作",
-                                        'class' => 'yii\grid\ActionColumn',
-                                        'template' => '{edit} {status} {destroy}',
-                                        'buttons' => [
-                                            'edit' => function ($url, $model, $key) {
-                                                return Html::edit(['/monitor-project/bell/ajax-edit', 'id' => $model->id], '编辑', [
-                                                    'class' => 'blue',
-                                                    'data-toggle' => 'modal',
-                                                    'data-target' => '#ajaxModalLg',
-                                                ]);
-                                            },
-                                            'destroy' => function ($url, $model, $key) {
-                                                return Html::delete(['/monitor-project/bell/destroy', 'id' => $model->id], '删除', ['class' => 'red']);
-                                            },
-                                        ],
-                                    ],
-                                ],
-                            ]); ?>
+                            <table class="table table-hover" style="table-layout:fixed;font-size:8px">
+                                <tr>
+                                    <th>时间</th>
+                                    <th>点位</th>
+                                    <th>数据</th>
+                                    <th>报警</th>
+                                </tr>
+                                <?php foreach ($valueList as $key => $value) : ?>
+                                    <tr>
+                                        <td><?= date('m-d H:i', $value['event_time']) . ($value['event_time'] > strtotime('-1 hour') ? ' <span class="label label-warning" style="font-size:2px">NEW</span>' : '') ?></td>
+                                        <td><?= Html::a($value['parent']['title'], ['/monitor-project/point/view', 'id' => $value['pid']], $options = [
+                                                'class' => 'openContab'
+                                            ]) ?></td>
+                                        <td>
+                                            <?= $value['value'] ?>
+                                            <?php if (($num = round(($value['value'] - Value::getPrevValue($value['id'])), 4)) > 0) : ?>
+                                                <i class="fa fa-long-arrow-up red"><?= $num ?></i>
+                                            <?php else : ?>
+                                                <i class="fa fa-long-arrow-down blue"><?= $num ?></i>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?= WarnEnum::getValue($value['warn']) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="box">
+                        <div class="box-header">
+                            <i class="fa fa-circle blue" style="font-size: 8px"></i>
+                            <h3 class="box-title">最新报告</h3>
+                            <div class="box-tools">
+                                <?= Html::linkButton(['report', 'id' => $model['id']], '查看更多>>', [
+                                    'class' => ''
+                                ]); ?>
+                            </div>
+                        </div>
+                        <div class="box-body table-responsive">
+                            <table class="table table-hover">
+                                <tr>
+                                    <th>上传人员</th>
+                                    <th>类型</th>
+                                    <th>文件名</th>
+                                    <th>上传时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                <?php foreach ($reportModel ?: [] as $key => $value) : ?>
+                                    <tr>
+                                        <td><?= $value['user']['realname'] ?></td>
+                                        <td><?= ReportEnum::getValue($value['type']) . $value['type'] ?></td>
+                                        <td><?= $value['file_name'] ?></td>
+                                        <td><?= date('Y-m-d H:i', $value['created_at']) ?></td>
+                                        <td>
+                                            <?= Html::a('下载', $value['file'], [
+                                                'download' => 'download',
+                                            ]) ?>
+                                            <?= Html::a('编辑', ['/monitor-project/report/ajax-edit', 'id' => $value['id']], [
+                                                'data-toggle' => 'modal',
+                                                'data-target' => '#ajaxModalLg',
+                                            ]) ?>
+                                            <?= Html::delete(['/monitor-project/report/destroy', 'id' => $value['id']], '删除', ['class' => 'red']) ?>
+
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <?php foreach ($points as $key => $value) : ?>
-                    <div class="col-md-6 col-xs-12 col-sm-12">
-                        <div class="box box-solid">
-                            <div class="box-header">
-                                <i class="fa fa-area-chart blue" style="font-size: 8px"></i>
-                                <h3 class="box-title"><?= PointEnum::getValue($value) ?></h3>
-                            </div>
-                            <div class="box-body">
-                                <?= \common\widgets\echarts\Echarts::widget([
-                                    'config' => [
-                                        'server' => Url::to(['point-between-count', 'point_type' => $value, 'id' => $model['id']]),
-                                        'height' => '315px'
-                                    ]
+        </div>
+    </div>
+    <div class="col-xs-12">
+
+        <div class="box">
+            <div class="box-header">
+                <i class="fa fa-circle blue" style="font-size: 8px"></i>
+                <h3 class="box-title">监测点</h3>
+                <a href="<?= Url::to(['ajax-edit', 'id' => $model['id']], $schema = true) ?>" data-toggle='modal' , data-target='#ajaxModalLg' ,>
+                    <i class="fa fa-edit blue" style="font-size: 12px"></i>
+                </a>
+                <div class="box-tools">
+                    <?= Html::create(['/monitor-project/point/ajax-edit', 'pid' => $model['id']], '创建', [
+                        'data-toggle' => 'modal',
+                        'data-target' => '#ajaxModalLg',
+                    ]); ?>
+                </div>
+            </div>
+            <div class="box-body table-responsive">
+                <table class="table table-hover">
+                    <tr>
+                        <th>监测点名称</th>
+                        <th>类型</th>
+                        <th>是否报警</th>
+                        <th>报警开关</th>
+                        <th>绑定设备</th>
+                        <th>更新时间</th>
+                        <th>数据类型</th>
+                        <th>最新数据</th>
+                        <th>操作</th>
+                    </tr>
+                    <?php foreach ($pointModel ?: [] as $key => $value) : ?>
+                        <tr>
+                            <td><?= Html::a($value['title'], ['/monitor-project/point/view', 'id' => $value['id']], $options = []) ?></td>
+                            <td><?= PointEnum::getValue($value['type']) ?></td>
+
+                            <td><?= WarnEnum::$spanlistExplain[Yii::$app->services->pointWarn->getPointWarn($model['id'])] ?></td>
+                            <td><?= SwitchEnum::getValue($value['warn_switch']) ?></td>
+                            <td>
+                                <?= Html::a($value['device']['number'], ['/console-huawei/device/view', 'id' => $value['device']['id']]) ?>
+                                <?= Html::linkButton(['ajax-device', 'point_id' => $value['id'], 'id' => $value['deviceMap']['id']], '<i class="icon ion-link"></i> ' . '绑定设备', [
+                                    'class' => 'btn btn-info btn-xs',
+                                    'data-toggle' => 'modal',
+                                    'data-target' => '#ajaxModalLg',
+                                ]); ?>
+                            </td>
+                            <td><?= $value['newValue']['event_time'] ? date('Y-m-d H:i', $value['newValue']['event_time']) : '' ?></td>
+                            <td><?= ValueTypeEnum::getValue($value['newValue']['type']) ?></td>
+                            <td><?= $value['newValue']['value'] ?></td>
+                            <td>
+                                <?= Html::a('添加数据', ['/monitor-project/point-value/ajax-edit', 'pid' => $value['id']], [
+                                    'data-toggle' => 'modal',
+                                    'data-target' => '#ajaxModalLg',
                                 ]) ?>
-                                <!-- /.box-body -->
-                            </div>
-                            <!-- /.box -->
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                                <?= Html::a('编辑', ['/monitor-project/point/ajax-edit', 'id' => $value['id']], [
+                                    'data-toggle' => 'modal',
+                                    'data-target' => '#ajaxModalLg',
+                                ]) ?>
+                                <?= Html::delete(['/monitor-project/point/delete', 'id' => $value['id']], '删除', ['class' => 'red']) ?>
+
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
             </div>
-            <div class="box box-solid">
-                <div class="box-header">
-                    <i class="fa fa-area-chart blue" style="font-size: 8px"></i>
-                    <h3 class="box-title">房屋地址</h3>
-                </div>
-                <div class="box-body">
-                    <div id="allmap"></div>
-                </div>
+        </div>
+    </div>
+    <div class="col-xs-12">
+        <div class="box">
+            <div class="box-header">
+                <i class="fa fa-area-chart blue" style="font-size: 8px"></i>
+                <h3 class="box-title">房屋地址</h3>
+            </div>
+            <div class="box-body">
+                <div id="allmap"></div>
             </div>
         </div>
     </div>

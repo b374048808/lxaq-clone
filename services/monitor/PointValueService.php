@@ -33,20 +33,27 @@ class PointValueService extends Service
      * 生成监测点数据
      * 
      * @param {*} $pid 监测点ID
-     * @param {*} $data 数据value
+     * @param {*} $data 数据value,已添加初始值
      * @param {*} $time 时间
      * @return bool
      * @throws: 添加数据
-     */    
-    public function setValue($pid,$data,$time = null)
+     */
+    public function setValue($pid, $data, $time = null)
     {
-        // 判断
-        $warn = Yii::$app->services->ruleSimple->getRuleWarn($pid, $data);
+
+        $pointModel = Point::findOne($pid);
+        // 点位打开报警开关，判断标准报警和设置报警值报警，取最大值
+        if ($pointModel->warn_switch) {
+            $warn = Yii::$app->services->pointWarn->getDefaultWarn($pid, $data);
+            $warn2 = Yii::$app->services->ruleSimple->getRuleWarn($pid, $data);
+            $warn = $warn2 > $warn ? $warn2 : $warn;
+        }
+
 
         $model = new Value;
         $model->pid = $pid;
         $model->value = $data;
-        $model->event_time = $time?:time();
+        $model->event_time = $time ?: time();
         $model->warn = $warn;
         // 审核状态
         $model->state = $model->warn > WarnEnum::SUCCESS ? ValueStateEnum::AUDIT : ValueStateEnum::ENABLED;
@@ -56,8 +63,8 @@ class PointValueService extends Service
                 ->with('house')
                 ->where(['id' => $pid])
                 ->asArray();
-            $content = '监测房屋'.$pointModel['house']['title'].'下的监测点'.$pointModel['title'].'发生数据报警,数据为'.$data;
-            
+            $content = '监测房屋' . $pointModel['house']['title'] . '下的监测点' . $pointModel['title'] . '发生数据报警,数据为' . $data;
+
             Yii::$app->services->monitorNotify->createRemind(
                 $model->attributes['id'],
                 SubscriptionReasonEnum::BEHAVIOR_CREATE,
@@ -118,8 +125,8 @@ class PointValueService extends Service
 
         $fields = [];
         foreach ($pointModel as $key => $value) {
-            $fields = array_merge($fields,array($value['title'] => $value['title']));
-        }        
+            $fields = array_merge($fields, array($value['title'] => $value['title']));
+        }
 
         global $modelType, $modelPoints;
         $modelType = $valueType;
@@ -135,7 +142,7 @@ class PointValueService extends Service
                 array_push(
                     $res,
                     Value::find()
-                        ->select(['max(value) as '.$value['title'], "from_unixtime(event_time, '$formatting') as time"])
+                        ->select(['max(value) as ' . $value['title'], "from_unixtime(event_time, '$formatting') as time"])
                         ->where(['>', 'status', StatusEnum::DISABLED])
                         ->andWhere(['pid' => $value['id']])
                         ->andWhere(['between', 'event_time', $start_time, $end_time])
@@ -143,7 +150,7 @@ class PointValueService extends Service
                         ->asArray()
                         ->all()
                 );
-            }            
+            }
             return $res;
         }, $fields, $time, $format);
     }

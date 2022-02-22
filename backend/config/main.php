@@ -37,6 +37,9 @@ return [
         'company-base' => [
             'class' => 'backend\modules\company\base\Module',
         ],
+        'company-service' => [
+            'class' => 'backend\modules\company\service\Module',
+        ],
         /** ------ 物联网模块 ------ **/
         'console-ali' => [
             'class' => 'backend\modules\console\ali\Module',
@@ -70,6 +73,9 @@ return [
         ],
         'monitor-data' => [
             'class' => 'backend\modules\monitor\data\Module',
+        ],
+        'monitor-service' => [
+            'class' => 'backend\modules\monitor\service\Module',
         ],
         /** ------ 项目模块 ------ **/
         'monitor-create' => [
@@ -177,6 +183,7 @@ return [
         'select-map' => 'common\widgets\selectmap\MapController', // 经纬度选择
         'cropper' => 'common\widgets\cropper\CropperController', // 图片裁剪
         'notify' => 'backend\widgets\notify\NotifyController', // 消息
+        'wnotify' => 'backend\widgets\wnotify\NotifyController', // 员工消息
         'monitor-notify' => 'backend\widgets\monitornotify\NotifyController', // 消息
     ],
     'params' => $params,

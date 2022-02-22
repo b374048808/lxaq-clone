@@ -1,53 +1,76 @@
-<?php
+<div>
 
-/* @var $this yii\web\View */
-
-$this->title = 'My Yii Application';
-?>
-<div class="site-index">
-
-    <div class="jumbotron">
-        <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
-
-    <div class="body-content">
-
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
-        </div>
-
-    </div>
 </div>
+<script>
+    var timestamp = 0;
+    var offset = 0;
+    
+    function prodcut(){
+        $.ajax({
+            headers: {
+                application: '8m6WF3jb5yb',
+                timestamp: new Date().getTime() + offset,
+                signature: 'rlLuL7QK3abT3cfXG4zoIXayXig=',
+                sdk: 0,
+                version: '20181031202055',
+            },
+            url: 'http://ag-api.ctwing.cn/aep_product_management/product',
+            type: 'get',
+            // 设置的是请求参数
+            data: {
+                "productId": "15128976"
+            },
+            // 用于设置响应体的类型 注意 跟 data 参数没关系！！！
+            dataType: 'json',
+            success: function(res) {
+                console.log('2')
+                // 一旦设置的 dataType 选项，就不再关心 服务端 响应的 Content-Type 了
+                // 客户端会主观认为服务端返回的就是 JSON 格式的字符串
+                console.log(res)
+            }
+        })
+    }
+    $.ajax({
+        headers: {
+            application: '8m6WF3jb5yb',
+            signature: 'rlLuL7QK3abT3cfXG4zoIXayXig=',
+            sdk: 0,
+            version: '20181031202055',
+        },
+        url: 'http://ag-api.ctwing.cn/echo',
+        type: 'get',
+        // 用于设置响应体的类型 注意 跟 data 参数没关系！！！
+        dataType: 'json',
+        complete: function(xhr, data) {
+            // 获取相关Http Response header
+            var wpoInfo = {
+                // 服务器端时间
+                "date": xhr.getResponseHeader('Date'),
+                // 如果开启了gzip，会返回这个东西
+                "contentEncoding": xhr.getResponseHeader('Content-Encoding'),
+                // keep-alive ？ close？
+                "connection": xhr.getResponseHeader('Connection'),
+                // 响应长度
+                "contentLength": xhr.getResponseHeader('Content-Length'),
+                // 服务器类型，apache？lighttpd？
+                "server": xhr.getResponseHeader('Server'),
+                "vary": xhr.getResponseHeader('Vary'),
+                "transferEncoding": xhr.getResponseHeader('Transfer-Encoding'),
+                // text/html ? text/xml?
+                "contentType": xhr.getResponseHeader('Content-Type'),
+                "cacheControl": xhr.getResponseHeader('Cache-Control'),
+                // 生命周期？
+                "exprires": xhr.getResponseHeader('Exprires'),
+                "lastModified": xhr.getResponseHeader('Last-Modified')
+            };
+            // 在这里，做想做的事。。。
+            console.log();
+            offset = xhr.getResponseHeader('timestamp') - new Date().getTime();
+            prodcut();
+            // 一旦设置的 dataType 选项，就不再关心 服务端 响应的 Content-Type 了
+            // 客户端会主观认为服务端返回的就是 JSON 格式的字符串
+            console.log('1')
+        },
+    })
+
+</script>

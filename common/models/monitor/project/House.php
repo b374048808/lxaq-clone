@@ -5,6 +5,10 @@ namespace common\models\monitor\project;
 use Yii;
 use common\enums\StatusEnum;
 use common\helpers\ArrayHelper;
+use common\models\monitor\project\point\Value;
+use common\models\monitor\project\rule\Item;
+use common\models\worker\Worker;
+
 /**
  * This is the model class for table "rf_lx_monitor_house".
  *
@@ -56,6 +60,15 @@ use common\helpers\ArrayHelper;
  * @property int $status 状态
  * @property int $created_at 创建时间
  * @property int $updated_at 更新时间
+ * @property string $side 周边环境
+ * @property string $property_nature 产权性质
+ * @property int $room 间   数
+ * @property string $base_form 基础形式
+ * @property string $use_change 用途变更
+ * @property string $disasters 灾  害
+ * @property string $detect_scope 鉴定范围
+ * @property string $property_card 产权证号
+ * @property string $land_card 地号
  */
 class House extends \common\models\base\BaseModel
 {
@@ -75,18 +88,20 @@ class House extends \common\models\base\BaseModel
     public function rules()
     {
         return [
-            [['entry_id', 'province_id', 'city_id', 'area_id', 'item_id', 'year', 'nature', 'layer', 'news', 'type', 'roof', 'floor', 'wall', 'basement', 'beam', 'column', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
+            ['title','required'],
+            [['entry_id', 'room', 'province_id', 'city_id', 'area_id', 'item_id', 'year', 'nature', 'layer', 'floor', 'wall', 'basement', 'beam', 'column', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
             [['area', 'lng', 'lat', 'height', 'width', 'length'], 'number'],
             [['hint_cover', 'layout_cover', 'plan_cover', 'angle_warn', 'settling_warn', 'move_warn', 'cracks_warn', 'angle_cover', 'move_cover', 'cracks_cover', 'settling_cover'], 'safe'],
-            [['title', 'owner', 'design', 'supervision', 'prospect', 'roadwork'], 'string', 'max' => 50],
+            [['title', 'owner', 'design', 'supervision', 'prospect', 'roadwork', 'side', 'property_nature', 'base_form', 'use_change', 'disasters', 'detect_scope', 'property_card', 'land_card','roof','type'], 'string', 'max' => 50],
             [['cover', 'address'], 'string', 'max' => 100],
             [['mobile'], 'string', 'max' => 20],
-            [['description'], 'string', 'max' => 140],
+            [['news'], 'string', 'max' => 10],
+            [['description','history'], 'string', 'max' => 140],
             ['lnglat', 'safe']
         ];
     }
 
-    /**
+    /** 
      * {@inheritdoc}
      */
     public function attributeLabels()
@@ -94,12 +109,11 @@ class House extends \common\models\base\BaseModel
         return [
             'id' => 'ID',
             'entry_id' => '录入人员ID',
-            'title' => '标题',
+            'title' => '姓名(单位名称)',
             'province_id' => '省',
             'city_id' => '城市',
             'area_id' => '镇',
             'cover' => '封面',
-            'item_id' => '项目ID',
             'mobile' => '联系方式',
             'address' => '详细地址',
             'owner' => '业主单位',
@@ -114,6 +128,7 @@ class House extends \common\models\base\BaseModel
             'news' => '朝向',
             'type' => '结构类型',
             'roof' => '屋面形式',
+            'history'   => '历史情况',
             'lng' => '经度',
             'lat' => 'L纬度',
             'hint_cover' => '示意图',
@@ -140,6 +155,15 @@ class House extends \common\models\base\BaseModel
             'status' => '状态',
             'created_at' => '创建时间',
             'updated_at' => '更新时间',
+            'side' => '周边环境',
+            'property_nature' => '产权性质',
+            'room' => '间   数',
+            'base_form' => '基础形式',
+            'use_change' => '用途变更',
+            'disasters' => '灾  害',
+            'detect_scope' => '鉴定范围',
+            'property_card' => '产权证号',
+            'land_card' => '地号',
         ];
     }
 
@@ -151,7 +175,7 @@ class House extends \common\models\base\BaseModel
     public function beforeSave($insert)
     {
         if ($this->isNewRecord) {
-            $this->entry_id = Yii::$app->user->id;
+            $this->entry_id = $this->entry_id?:Yii::$app->user->id;
         }
         if (!empty($this->lnglat)) {
 
@@ -161,6 +185,11 @@ class House extends \common\models\base\BaseModel
         }
 
         return parent::beforeSave($insert);
+    }
+
+    public function getSimple(){
+        return $this->hasMany(Item::class,['pid' => 'id'])
+            ->andWhere(['status' => StatusEnum::ENABLED]);
     }
 
     public function getWarn()
@@ -189,6 +218,10 @@ class House extends \common\models\base\BaseModel
         return $model['title'];
     }
 
+    public function getMember(){
+        return $this->hasOne(Worker::class,['id' => 'entry_id']);
+    }
+
     /**
      * 房屋下所有的监测点
      * 
@@ -204,6 +237,23 @@ class House extends \common\models\base\BaseModel
             ->asArray()
             ->all();
         return $pointModel?ArrayHelper::getColumn($pointModel,'id', $keepKeys = true):[];
+    }
+
+    /**
+     * 房屋下所有的监测点列表
+     * 
+     * @param n*o $id
+     * @return array
+     * @throws: 
+     */    
+    public static function getPointMap($id, $type = null){
+        $pointModel = Point::find()
+            ->where(['pid' => $id])
+            ->andFilterWhere(['type' => $type])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+        return $pointModel?ArrayHelper::map($pointModel,'title','title'):[];
     }
 
     /**
@@ -255,3 +305,4 @@ class House extends \common\models\base\BaseModel
         return $i;
     }
 }
+

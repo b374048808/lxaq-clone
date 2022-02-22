@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-14 14:18:55
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-05-27 10:42:18
+ * @LastEditTime: 2021-07-21 17:13:38
  * @Description: 
  */
 
@@ -13,10 +13,12 @@ use yii;
 use api\controllers\OnAuthController;
 use common\enums\PointEnum;
 use common\enums\StatusEnum;
+use common\enums\WarnStateEnum;
 use common\models\monitor\project\log\WarnLog;
 use common\models\member\HouseMap;
 use common\models\monitor\project\House;
 use common\models\monitor\project\Point;
+use common\models\monitor\project\point\Warn;
 use Swoole\Http\Status;
 
 /**
@@ -55,11 +57,12 @@ class SiteController extends OnAuthController
                 'icon' => 'warning',
                 'title' => '报警',
                 'name' => 'warning',
-                'value' => WarnLog::find()
+                'value' => Warn::find()
                     ->andWhere(['status' => StatusEnum::ENABLED])
                     ->andWhere(['in', 'pid', $pointIds])
+                    ->andWhere(['state' => WarnStateEnum::AUDIT])
                     ->count(),
-                'count' => WarnLog::find()
+                'count' => Warn::find()
                     ->andWhere(['status' => StatusEnum::ENABLED])
                     ->andWhere(['in', 'pid', $pointIds])
                     ->count(),
@@ -67,12 +70,15 @@ class SiteController extends OnAuthController
             ],
             [
                 'icon' => 'point',
-                'title' => '动态点位',
-                'name' => 'device',
-                'value' => 0,
+                'title' => '监测点位',
+                'name' => 'point',
+                'value' =>  Point::find()
+                ->andWhere(['status' => StatusEnum::ENABLED])
+                ->andWhere(['in', 'id', $pointIds])
+                ->count(),
                 'count' => Point::find()
                     ->andWhere(['status' => StatusEnum::ENABLED])
-                    ->andWhere(['in', 'pid', $pointIds])
+                    ->andWhere(['in', 'id', $pointIds])
                     ->count(),
                 'color' => '#40c9c6'
             ],
@@ -87,7 +93,7 @@ class SiteController extends OnAuthController
 
             array_push($info['lineData']['time'],date('m-d',$i));   //X轴时间
             array_push($info['lineData']['data'],
-                WarnLog::find()
+                Warn::find()
                     ->where(['status' => StatusEnum::ENABLED])
                     ->andWhere(['in','pid',$pointIds])
                     ->andWhere(['between','created_at',$i,$i+60*60*24])

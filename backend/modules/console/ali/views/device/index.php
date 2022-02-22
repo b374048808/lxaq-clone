@@ -94,7 +94,7 @@ $this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
                             'template' => '{view} {destroy}',
                             'buttons' => [
                                 'view' => function ($url, $model, $key) {
-                                    return BaseHtml::edit(['destroy', 'id' => $model->id]);
+                                    return BaseHtml::edit(['view', 'id' => $model->id]);
                                 },
                                 'destroy' => function ($url, $model, $key) {
                                     return BaseHtml::delete(['destroy', 'id' => $model->id]);

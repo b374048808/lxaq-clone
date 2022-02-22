@@ -93,10 +93,16 @@ class Device extends \common\models\base\BaseModel
     {
         return Value::find()
                 ->where(['pid' => $this->id])
-                ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
+                ->andWhere(['between', 'event_time', strtotime('-1 day')*1000, time()*1000])
                 ->exists() 
             ? '<span class="label label-info">在线</span>' 
             : '<span class="label label-warning">离线</span>';
+    }
+
+    public static function getOnline($id){
+        return Value::find()->where(['pid' => $id])
+            ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
+            ->exists() ;
     }
 
     public function getNewValue()

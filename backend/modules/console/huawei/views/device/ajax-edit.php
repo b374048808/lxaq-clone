@@ -3,10 +3,11 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-16 15:28:30
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-30 10:23:33
+ * @LastEditTime: 2022-02-18 15:24:49
  * @Description: 
  */
 
+use common\enums\device\SwitchEnum;
 use yii\widgets\ActiveForm;
 use common\models\console\iot\huawei\Product;
 use common\enums\StatusEnum;
@@ -33,14 +34,23 @@ $form = ActiveForm::begin([
     <?= $form->field($model, 'device_name')->textInput() ?>
     <?= $form->field($model, 'number')->textInput() ?>
     <?= $form->field($model, 'device_id')->textInput() ?>
-    <?= $form->field($model, 'card_id')->widget(kartik\select2\Select2::class, [
-        'data' => $cards,
-        'options' => ['placeholder' => '请选择'],
-        'pluginOptions' => [
-            'allowClear' => true
-        ],
-    ]);?>
+    <?= $form->field($model, 'card')->textInput() ?>
     <?= $form->field($model, 'sort')->textInput(); ?>
+    <?= $form->field($model, 'over_time')->widget(kartik\date\DatePicker::class, [
+        'language' => 'zh-CN',
+        'layout' => '{picker}{input}',
+        'pluginOptions' => [
+            'format' => 'yyyy-mm-dd',
+            'todayHighlight' => true, //今日高亮
+            'autoclose' => true, //选择后自动关闭
+            'todayBtn' => true, //今日按钮显示
+        ],
+        'options' => [
+            'class' => 'form-control no_bor',
+        ]
+    ]); ?>
+    <?= $form->field($model, 'switch')->radioList(SwitchEnum::getMap()) ?>
+    <?= $form->field($model, 'description')->textarea() ?>
     <?= $form->field($model, 'status')->radioList(StatusEnum::getMap()); ?>
 </div>
 </div>

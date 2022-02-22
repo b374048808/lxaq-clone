@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-01 14:26:41
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-09-08 15:33:16
+ * @Description: 
+ */
 
 namespace addons\RfArticle\merchant\controllers;
 
@@ -55,6 +62,7 @@ class ArticleCateController extends BaseController
 
         // ajax 验证
         $this->activeFormValidate($model);
+        
         if ($model->load(Yii::$app->request->post())) {
             return $model->save()
                 ? $this->redirect(['index'])

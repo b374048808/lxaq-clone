@@ -2,6 +2,9 @@
 
 namespace workapi\modules\v1\controllers;
 
+use common\enums\mini\MessageActionEnum;
+use common\enums\mini\MessageReasonEnum;
+use common\enums\mini\TemplateEnum;
 use Yii;
 use yii\web\NotFoundHttpException;
 use common\helpers\ResultHelper;
@@ -34,7 +37,7 @@ class SiteController extends OnAuthController
      *
      * @var array
      */
-    protected $authOptional = ['login', 'refresh', 'mobile-login', 'sms-code', 'register', 'up-pwd'];
+    protected $authOptional = ['login', 'refresh', 'mobile-login', 'sms-code', 'register', 'up-pwd', 'message'];
 
     /**
      * 登录根据用户信息返回accessToken
@@ -54,6 +57,18 @@ class SiteController extends OnAuthController
         // 返回数据验证失败
         return ResultHelper::json(422, $this->getError($model));
     }
+
+
+    //发送摇号订阅消息
+    public function actionSignature()
+    {
+        $request = Yii::$app->request;
+        $data =  $request->post('message_data');
+        $template =  $request->post('template');
+        return Yii::$app->services->workerMiniMessage->createRemind($template, $data['openid'], '', MessageActionEnum::VERIFY_CREATE, MessageReasonEnum::SERVICE_VERIFY);
+    }
+
+
 
     /**
      * 登出
@@ -129,7 +144,7 @@ class SiteController extends OnAuthController
      * @return array|mixed
      * @throws \yii\base\Exception
      */
-    private function actionRegister()
+    public function actionRegister()
     {
         $model = new RegisterForm();
         $model->attributes = Yii::$app->request->post();
@@ -153,7 +168,7 @@ class SiteController extends OnAuthController
      * @return array|mixed
      * @throws \yii\base\Exception
      */
-    private function actionUpPwd()
+    public function actionUpPwd()
     {
         $model = new UpPwdForm();
         $model->attributes = Yii::$app->request->post();

@@ -5,17 +5,16 @@ namespace backend\modules\monitor\project\controllers;
 use Yii;
 use common\traits\Curd;
 use backend\controllers\BaseController;
-use backend\forms\ValueRandForm;
-use backend\modules\monitor\project\forms\EditAllForm;
 use backend\modules\monitor\project\forms\ValueRandForm as FormsValueRandForm;
 use common\enums\StatusEnum;
 use common\enums\PointEnum;
+use common\enums\ValueTypeEnum;
+use common\enums\WarnEnum;
 use common\models\monitor\project\Point;
 use common\models\base\SearchModel;
 use common\helpers\ResultHelper;
 use common\helpers\ExcelHelper;
 use common\models\monitor\project\point\Value;
-use Swoole\Http\Status;
 use yii\data\ActiveDataProvider;
 
 /**
@@ -40,23 +39,30 @@ class PointValueController extends BaseController
     public function actionIndex()
     {
         $request = Yii::$app->request;
-        $pid = $request->get('pid', null);
-        $pointModel = Point::findOne($pid);
+        $from_date =  $request->get('from_date', date('Y-m-d', strtotime("-6 day")));
+		$to_date = $request->get('to_date', date('Y-m-d'));
+        $type = $request->get('type',null);
+        $warn = $request->get('warn',null);
+        $pid = $request->get('pid',null);
 
 
         $searchModel = new SearchModel([
             'model' => $this->modelClass,
             'scenario' => 'default',
             'defaultOrder' => [
+                'event_time' => SORT_DESC,
                 'id' => SORT_DESC
             ],
             'pageSize' => $this->pageSize
         ]);
-
         $dataProvider = $searchModel
             ->search(Yii::$app->request->queryParams);
         $dataProvider->query
             ->andWhere(['=', 'status', StatusEnum::ENABLED])
+            ->andFilterWhere(['type' => $type])
+            ->andFilterWhere(['warn' => $warn])
+            // 转化时间戳，结尾添加1天取值到选取日期
+            ->andWhere(['between','event_time',strtotime($from_date),strtotime('+1 day', strtotime($to_date))])
             ->andFilterWhere(['pid' => $pid]);
 
         //关于YII框架Response content must not be an array的解决方法
@@ -64,7 +70,11 @@ class PointValueController extends BaseController
         return $this->render($this->action->id, [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'pointModel' => $pointModel,
+            'pointModel' => $pid?Point::findOne($pid):'',
+            'type'  => $type,
+            'warn'  => $warn,
+            'from_date' => $from_date,
+            'to_date'   => $to_date,
         ]);
     }
 
@@ -105,8 +115,7 @@ class PointValueController extends BaseController
     {
         $request = Yii::$app->request;
 
-        $modelClass = PointEnum::getModel($request->get('type'));
-        $model = $modelClass::findOne($request->get('id'));
+        $model = Value::findOne($request->get('id'));
         // ajax 校验
         $this->activeFormValidate($model);
         if ($model->load($request->post())) {
@@ -235,6 +244,45 @@ class PointValueController extends BaseController
             'model' => $model,
         ]);
     }
+
+    /**
+	 * 导出Excel
+	 *
+	 * @return bool
+	 * @throws \PhpOffice\PhpSpreadsheet\Exception
+	 * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+	 */
+	public function actionExport()
+	{
+		// [名称, 字段名, 类型, 类型规则]
+		$request = Yii::$app->request;
+		
+        $from_date =  $request->get('from_date', date('Y-m-d', strtotime("-6 day")));
+		$to_date = $request->get('to_date', date('Y-m-d'));
+        $type = $request->get('type',null);
+        $warn = $request->get('warn',null);
+        $pid = $request->get('pid',null);
+
+        $model = Value::find()
+            ->with('parent')
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            // 转化时间戳，结尾添加1天取值到选取日期
+            ->andWhere(['between','event_time',strtotime($from_date),strtotime('+1 day', strtotime($to_date))])
+            ->andFilterWhere(['pid' => $pid])
+            ->andFilterWhere(['type' => $type])
+            ->andFilterWhere(['warn' => $warn])
+            ->andFilterWhere(['pid' => $pid])
+            ->orderBy('event_time desc')
+            ->asArray()
+            ->all();
+		$header = [            
+			['采集时间', 'event_time', 'date', 'Y-m-d H:i:s'],
+            ['类型', 'type', 'selectd',ValueTypeEnum::getMap()],
+			['数据', 'value', 'text'],
+			['报警', 'warn', 'selectd',WarnEnum::getMap()],
+		];
+		return ExcelHelper::exportData($model, $header, '数据导出_' . time());
+	}
 
     /**
      * 探针

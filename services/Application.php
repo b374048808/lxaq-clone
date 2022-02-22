@@ -116,6 +116,9 @@ class Application extends Service
         'workerBankAccount' => 'services\worker\BankAccountService',
         'workerCreditsLog' => 'services\worker\CreditsLogService',
         'workerRechargeConfig' => 'services\worker\RechargeConfigService',
+        'workerNotify' => 'services\worker\NotifyService',
+        'workerNotifyPullTime' => 'services\worker\NotifyPullTimeService',
+        'workerNotifySubscriptionConfig' => 'services\worker\NotifySubscriptionConfigService',
         /** ------ api ------ **/
         'apiAccessToken' => [
             'class' => 'services\api\AccessTokenService',
@@ -169,6 +172,10 @@ class Application extends Service
             'class' => 'services\common\SmsService',
             'queueSwitch' => false, // 是否丢进队列
         ],
+        'lxsms' => [
+            'class' => 'services\common\LxSmsService',
+            'queueSwitch' => false, // 是否丢进队列
+        ],
         'mailer' => [
             'class' => 'services\common\MailerService',
             'queueSwitch' => false, // 是否丢进队列
@@ -189,6 +196,8 @@ class Application extends Service
         'oauth2RefreshToken' => 'services\oauth2\RefreshTokenService',
         'oauth2AuthorizationCode' => 'services\oauth2\AuthorizationCodeService',
         /** ------ 监测系统 ------ **/
+        'projectReport' => 'services\project\HouseReportService',
+        'monitorItem' => 'services\monitor\ItemService',
         'houseGround' => 'services\monitor\HouseGroundService',
         'pointValue' => 'services\monitor\PointValueService',
         'pointWarn' => 'services\monitor\PointWarnService',
@@ -199,15 +208,20 @@ class Application extends Service
         'moveValue' => 'services\monitor\MoveValueService',
         'ruleSimple' => 'services\monitor\RuleSimpleService',
         'createSimple' => 'services\monitor\CreateSimpleService',
+        'monitorService' => 'services\monitor\ServiceService',
         /** ------ 华为物联网 ------ **/
         'huaweiDevice' => 'services\huawei\DeviceService',
         'huaweiValue' => 'services\huawei\ValueService',
         'huaweiDirective' => 'services\huawei\DirectiveService',
+        /** ------ 电信物联网 ------ **/
+        'ctwingValue' => 'services\ctwing\ValueService',
         /** ------ 阿里物联网 ------ **/
         'aliDevice' => 'services\ali\DeviceService',
         'aliValue' => 'services\ali\ValueService',
         'aliDirective' => 'services\ali\DirectiveService',
         /** ------ 员工 ------ **/
         'backendWorker' => 'services\backend\WorkerService',
+        'workerVerifySms' => 'services\worker\VerifySmsService',
+        'workerMiniMessage' => 'services\worker\MiniMessageService',
     ];
 }

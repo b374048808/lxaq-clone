@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-19 11:24:26
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-12-07 17:41:16
+ * @Description: 
+ */
 
 use jianyan\treegrid\TreeGrid;
 use common\helpers\Html;
@@ -46,6 +53,7 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                 return $str;
                             }
                         ],
+                        'description',
                         [
                             'attribute' => 'sort',
                             'format' => 'raw',

@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-21 15:06:40
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2022-02-17 11:25:10
+ * @Description: 
+ */
 
 namespace services\huawei;
 
@@ -33,9 +40,8 @@ class DirectiveService extends Service
                 $valueStrpad = $this->getStrpad($value);
                 $directiveModel->content = str_replace('@RES', $valueStrpad, $directiveModel->content);
                 $directiveModel->content .= CRC16::hex($directiveModel->content);
-            }            
+            }
             $message = Signal::postData($deviceModel->device_id, $directiveModel->content);
-
             $this->saveLog([
                 'device_id' => $deviceId,
                 'params' => ['RES' => $value],
@@ -44,11 +50,32 @@ class DirectiveService extends Service
                 'ip' => Yii::$app->request->userIP,
                 'results' => json_encode($message),
             ]);
-            return true;
+            return $message;
         } catch (NotFoundHttpException $e) {
             throw new UnprocessableEntityHttpException($e->getMessage());
         }
         return false;
+    }
+
+    public function sendAll($ids, $content)
+    {
+        try {
+            foreach ($ids as $value) {
+
+                $deviceModel = Device::findOne($value);
+                $message = Signal::postData($deviceModel->device_id, $content);
+                $this->saveLog([
+                    'device_id' => $value,
+                    'params' => ['RES' => $value],
+                    'content' => $content,
+                    'ip' => Yii::$app->request->userIP,
+                    'results' => json_encode($message),
+                ]);
+            }
+        } catch (NotFoundHttpException $e) {
+            throw new UnprocessableEntityHttpException($e->getMessage());
+        }
+        return true;
     }
 
     /*

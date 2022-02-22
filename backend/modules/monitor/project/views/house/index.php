@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-26 11:31:01
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-15 17:52:22
+ * @LastEditTime: 2021-11-30 15:10:38
  * @Description: 
  */
 
@@ -53,8 +53,13 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                 return preg_match("/images/", $model['cover'])
                                     ? ImageHelper::fancyBox($model->cover,20,20)
                                     : '未设置';
-                            },
+                            }, 
                             'format' => 'raw'
+                        ],
+                        [
+                            'header' => '上传人员',
+                            'attribute' => 'member.realname'
+
                         ],
                         [
                             'attribute' => 'title',

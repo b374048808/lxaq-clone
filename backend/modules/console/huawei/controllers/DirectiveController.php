@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-21 10:48:40
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-07-20 14:15:13
+ * @Description: 
+ */
 namespace backend\modules\console\huawei\controllers;
 
 use Yii;
@@ -6,7 +13,9 @@ use common\traits\Curd;
 use backend\controllers\BaseController;
 use common\enums\StatusEnum;
 use common\models\base\SearchModel;
+use common\models\console\iot\huawei\Device;
 use common\models\console\iot\huawei\Directive;
+use yii\data\ActiveDataProvider;
 
 /**
  * 产品
@@ -78,6 +87,8 @@ class DirectiveController extends BaseController
             'model' => $model,
         ]);
     }
+
+
 
 
      /**

@@ -11,6 +11,8 @@ use common\enums\AppEnum;
 use common\helpers\ArrayHelper;
 use backend\modules\company\worker\forms\WorkerForm;
 use backend\controllers\BaseController;
+use backend\modules\company\worker\forms\WorkerRoleForm;
+use common\models\company\staff\Dept;
 
 /**
  * Class WorkerController
@@ -69,7 +71,6 @@ class WorkerController extends BaseController
     {
         $id = Yii::$app->request->get('id', null);
         $model = $this->findModel($id);
-        $model->merchant_id = $this->merchant_id;
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
@@ -77,6 +78,36 @@ class WorkerController extends BaseController
 
         return $this->render($this->action->id, [
             'model' => $model,
+            'depts' => Dept::getDropDown(),
+        ]);
+    }
+
+    /**
+     * 创建
+     *
+     * @return mixed|string|\yii\web\Response
+     * @throws \yii\base\ExitException
+     * @throws \yii\db\Exception
+     * @throws \yii\web\UnauthorizedHttpException
+     */
+    public function actionRole()
+    {
+        $request = Yii::$app->request;
+        $model = new WorkerRoleForm();
+        $model->id = $request->get('id');
+        $model->loadData();
+        $model->scenario = 'roleAdmin';
+
+        // ajax 校验
+        $this->activeFormValidate($model);
+        if ($model->load($request->post())) {
+            return $model->save()
+                ? $this->redirect(['index'])
+                : $this->message($this->getError($model), $this->redirect(['index']), 'error');
+        }
+        return $this->renderAjax($this->action->id, [
+            'model' => $model,
+            'roles' => Yii::$app->services->rbacAuthRole->getDropDown(AppEnum::WORKER),
         ]);
     }
 
@@ -92,7 +123,7 @@ class WorkerController extends BaseController
     {
         $request = Yii::$app->request;
         $model = new WorkerForm();
-        $model->id = $request->get('id');
+        $model->id = $request->get('id');        
         $model->loadData();
         $model->scenario = 'generalAdmin';
 

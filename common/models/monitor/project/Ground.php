@@ -38,6 +38,7 @@ class Ground extends \common\models\base\BaseModel
             [['sort', 'level', 'pid', 'status', 'created_at', 'updated_at'], 'integer'],
             [['title'], 'string', 'max' => 50],
             [['tree'], 'string', 'max' => 500],
+            [['description'], 'string', 'max' => 140],
         ];
     }
 
@@ -52,6 +53,7 @@ class Ground extends \common\models\base\BaseModel
             'sort' => '排序',
             'level' => '等级',
             'pid' => '父类',
+            'description' => '备注',
             'tree' => '树',
             'status' => '状态',
             'created_at' => '创建时间',

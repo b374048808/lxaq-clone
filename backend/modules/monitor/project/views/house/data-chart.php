@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-08 11:36:29
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-14 09:52:31
+ * @LastEditTime: 2022-02-21 15:12:12
  * @Description: 
  */
 
@@ -17,7 +17,7 @@ use yii\helpers\Url;
 
 $this->title = '数据曲线';
 $this->params['breadcrumbs'][] = ['label' => '房屋列表', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => House::getTitle($id), 'url' => ['view','id' => $id]];
+$this->params['breadcrumbs'][] = ['label' => House::getTitle($id), 'url' => ['view', 'id' => $id]];
 $this->params['breadcrumbs'][] = ['label' => $this->title];
 
 $addon = <<< HTML
@@ -30,13 +30,10 @@ HTML;
 <div class="row">
     <div class="col-xs-12">
         <div class="nav-tabs-custom">
-            <ul class="nav nav-tabs">
-                <li><a href="<?= Url::to(['view', 'id' => $id], $schema = true) ?>">概况</a></li>
-                <li><a href="<?= Url::to(['/monitor-project/point/index', 'pid' => $id], $schema = true) ?>">监测点</a></li>
-                <li><a href="<?= Url::to(['monitor', 'id' => $id], $schema = true) ?>">实时监测</a></li>
-                <li class="active"><a href="#">数据曲线</a></li>
-                <li><a href="<?= Url::to(['report', 'id' => $id], $schema = true) ?>">报告</a></li>
-            </ul>
+            <div class="box-header">
+                <i class="fa fa-circle blue" style="font-size: 8px"></i>
+                <h3 class="box-title">数据曲线</h3>
+            </div>
             <div class="box-body table-responsive">
                 <div class="col-sm-12 normalPaddingJustV">
                     <?php $form = ActiveForm::begin([
@@ -164,8 +161,7 @@ HTML;
                     }
                 }
             }],
-            dataZoom: [
-                {
+            dataZoom: [{
                     type: 'inside',
                     start: 0,
                     end: 100

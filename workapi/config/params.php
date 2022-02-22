@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-27 10:26:50
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-11-26 10:27:43
+ * @Description: 
+ */
 return [
     /** ------ 日志记录 ------ **/
     'user.log' => true,
@@ -7,7 +14,7 @@ return [
 
     /** ------ token相关 ------ **/
     // token有效期是否验证 默认不验证
-    'user.accessTokenValidity' => true,
+    'user.accessTokenValidity' => false,
     // token有效期 默认 2 小时
     'user.accessTokenExpire' => 2 * 60 * 60,
     // refresh token有效期是否验证 默认开启验证
@@ -23,6 +30,12 @@ return [
     // 触发格式化返回
     'triggerBeforeSend' => true,
     'noAuthRoute' => [
-        // '/v1/member/member/view'
-    ]
+        '/v1/site/login',
+        '/v1/monitor/item/rbac',
+        '/v1/monitor/service/rbac',
+        '/v1/project/report/rbac',
+        '/v1/default/search',
+        '/v1/site/signature'
+    ],
+    'adminAccount' => ['2'],
 ];

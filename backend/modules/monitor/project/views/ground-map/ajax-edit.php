@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-19 14:08:58
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-12-08 09:52:18
+ * @Description: 
+ */
 
 use common\enums\PointEnum;
 use yii\widgets\ActiveForm;
@@ -66,7 +73,7 @@ $js = <<<JS
             data:{data:keys},
             dataType:"json",
             success:function(e){
-                e?location.reload():alert('更新失败!');
+                e?window.history.back(-1):alert('更新失败!');
             }
         })
     });

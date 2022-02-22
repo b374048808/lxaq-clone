@@ -8,6 +8,9 @@ use common\components\Service;
 use common\models\worker\Worker;
 use common\helpers\EchantsHelper;
 use common\helpers\TreeHelper;
+use common\models\rbac\AuthRole;
+use common\helpers\ArrayHelper;
+use common\enums\AppEnum;
 
 /**
  * Class WorkerService
@@ -189,5 +192,27 @@ class WorkerService extends Service
         $worker->last_time = time();
         $worker->last_ip = Yii::$app->request->getUserIP();
         $worker->save();
+    }
+
+    public function getDropDown($sourceAuthChild = false)
+    {
+        // 所有角色
+        $list = AuthRole::find()
+            ->where(['app_id' => AppEnum::WORKER])
+            ->andWhere(['>=', 'status', StatusEnum::DISABLED])
+            ->orderBy('sort asc, created_at asc')
+            ->asArray()
+            ->all();
+        
+        $pid = 0;
+        $treeStat = 1;
+        if ($sourceAuthChild == true && ($role = Yii::$app->services->rbacAuthRole->getRole())) {
+            $pid = $role['id'];
+            $treeStat = $role['level'] + 1;
+        }
+
+        $models = ArrayHelper::itemsMerge($list, $pid);
+
+        return ArrayHelper::map(ArrayHelper::itemsMergeDropDown($models, 'id', 'title', $treeStat), 'id', 'title');
     }
 }

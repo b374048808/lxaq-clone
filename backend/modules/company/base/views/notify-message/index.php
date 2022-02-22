@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-12 10:30:23
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-11-18 10:56:14
+ * @Description: 
+ */
 
 use yii\grid\GridView;
 use common\helpers\Html;
@@ -32,10 +39,11 @@ $this->params['breadcrumbs'][] = $this->title;
                         ],
                         'id',
                         [
-                            'label'=> '发送对象',
+                            'label'=> '发布对象',
                             'filter' => false, //不显示搜索框
                             'value' => function($model){
-                                return $model->messageMember->member->username ?? '';
+                                return $model->sender_id;
+                                return $model->sender_id>0 ?$model->senderForMember->member->username: '系统管理员';
                             }
                         ],
                         'content',

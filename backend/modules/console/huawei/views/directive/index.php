@@ -3,11 +3,11 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-21 10:52:34
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-24 10:09:43
+ * @LastEditTime: 2021-07-20 13:48:05
  * @Description: 
  */
 
-use common\helpers\Html;
+use common\helpers\BaseHtml as Html;
 use yii\grid\GridView;
 use yii\helpers\Url;
 
@@ -54,8 +54,14 @@ $this->params['breadcrumbs'][] = ['label' =>  $this->title];
                             [
                                 'header' => "操作",
                                 'class' => 'yii\grid\ActionColumn',
-                                'template' => '{status} {delete}',
+                                'template' => '{check} {status} {delete}',
                                 'buttons' => [
+                                    'check' => function ($url, $model, $key) {
+                                        return Html::a('批量下发', ['ajax-check', 'id' => $model['id']], $options = [
+                                            'data-toggle' => 'modal',
+                                            'data-target' => '#ajaxModalLg',
+                                        ]);
+                                    },
                                     'status' => function ($url, $model, $key) {
                                         return Html::status($model->status);
                                     },

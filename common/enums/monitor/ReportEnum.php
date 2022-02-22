@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-06-23 10:52:16
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-02 11:07:44
+ * @LastEditTime: 2021-11-05 10:52:00
  * @Description: 
  */
 
@@ -19,14 +19,18 @@ use common\enums\BaseEnum;
 class ReportEnum extends BaseEnum
 {
 
-    const MONITOR_REPORT = 1;
+    const MONITOR = 1;
+    const DETECT = 2;
+    const OTHER = 99;
     /**
      * @return array
      */
     public static function getMap(): array
     {
         return [
-            self::MONITOR_REPORT => '监测报告',
+            self::MONITOR => '监测报告',
+            self::DETECT => '鉴定报告',
+            self::OTHER => '其他报告',
         ];
     }
 }

@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-10 10:46:17
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-05-12 14:11:27
+ * @LastEditTime: 2021-07-21 17:58:54
  * @Description: 
  */
 
@@ -23,7 +23,10 @@ use yii\data\ActiveDataProvider;
 use yii\data\Pagination;
 use common\helpers\ArrayHelper;
 use common\models\monitor\project\Point;
+use common\models\monitor\project\point\Value;
 use common\models\monitor\rule\Child;
+
+use function Clue\StreamFilter\remove;
 
 /**
  * 房屋控制器
@@ -55,58 +58,55 @@ class ValueController extends OnAuthController
     public function actionIndex($page = 1, $limit = 20)
     {
         $request = Yii::$app->request;
-        $houseId = $request->get('houseId', NULL);
-        $pointId = $request->get('pointId', NULL);
-        $warn = $request->get('warn', NULL);
-        $type = $request->get('type', NULL);
-        $todate = $request->get('todate', NULL);
-        $todate = $todate?strtotime($todate):null;
-        $houseIds = HouseMap::getHouseMap(Yii::$app->user->identity->member_id);
+        $houseId = $request->get('houseId', NULL);  //房屋
+        $pointId = $request->get('pointId', NULL);  //监测点
+        $warn = $request->get('warn', NULL);       //报警等级
+        $type = $request->get('type', ValueTypeEnum::AUTOMATIC);    //数据类型
+        $title = $request->get('title', NULL); 
+        $todate = $request->get('todate', NULL);    //时间
+        $todate = $todate ? strtotime($todate) : null;
+        $houseIds = HouseMap::getHouseMap(Yii::$app->user->identity->member_id);    //登录账号关联房屋
+
         $where = [];
         if ($houseId && $type) {
-            if (!in_array($houseId,$houseIds)) {
+            // 判断请求的房屋是否在关联范围内
+            if (!in_array($houseId, $houseIds)) {
                 return false;
             }
+            // 遍历监测点位
             $pointModel = Point::find()
                 ->where(['pid' => $houseId])
+                ->andFilterWhere(['title' => $title])
+                ->andWhere(['type' => $type])
                 ->andWhere(['status' => StatusEnum::ENABLED])
                 ->asArray()
                 ->all();
-            $ids = ArrayHelper::getColumn($pointModel,'id', $keepKeys = true);
-            $modelClass  = PointEnum::getModel($type);
+            $ids = ArrayHelper::getColumn($pointModel, 'id', $keepKeys = true);
             $where = ['in', 'pid', $ids];
-        }elseif ($pointId) {
+        } elseif ($pointId) {
+            // 判断监测点位
             $pointModel = Point::findOne($pointId);
-            $type = $pointModel->type;
-        }else{
+        } else {
             return false;
         }
-        $select = [];
-        switch ($type) {
-            case PointEnum::ANGLE:
-                $select = ['id','news','value','event_time','warn','pid'];
-                break;
-            
-            default:
-                $select = ['id','value','event_time','warn'];
-                break;
-        }
-        $query = $modelClass::find()    
-            ->select($select)   
-            ->with(['point'])
-            ->where($where)     
-            ->andWhere(['>','event_time',strtotime('-3 month')])
-            ->andFilterWhere(['between','event_time',$todate,strtotime('+1 day',$todate)])
+        $query = Value::find()
+            ->select(['id', 'value', 'event_time', 'warn', 'pid'])
+            ->with(['parent'])
+            ->where($where)
+            ->andWhere(['>', 'event_time', strtotime('-3 month')])
+            ->andFilterWhere(['between', 'event_time', $todate, strtotime('+1 day', $todate)])
             ->andFilterWhere(['pid' => $pointId])
             ->andFilterWhere(['warn' => $warn])
-            ->andWhere(['type' => $type])
             ->andWhere(['state' => ValueStateEnum::ENABLED])
-            ->andWhere(['=', 'status', StatusEnum::ENABLED])
+            ->andWhere(['status' => StatusEnum::ENABLED])
             ->orderBy('event_time desc');
-        $pages = new Pagination(['totalCount' => $query->count(), 'pageSize' => $limit = 20]);
+        // 分页
+        $pages = new Pagination(['totalCount' => $query->count(), 'pageSize' => $limit]);
         $model = $query->offset($pages->offset)->limit($pages->limit)->asArray()->all();
         foreach ($model as $key => &$value) {
-            $value['point'] = $value['point']['title'];
+            $value['point'] = $value['parent']['title'];
+            // 赋值结束后删除
+            unset($value['parent']);
             $value['warnText'] = WarnEnum::getValue($value['warn']);
         }
         return [
@@ -129,13 +129,12 @@ class ValueController extends OnAuthController
         foreach ($ruleItem as $key => $value) {
             if (!empty($value['item'])) {
                 foreach ($value['item'] as $key => $value) {
-                    array_push($houseItem,[
+                    array_push($houseItem, [
                         'title' => PointEnum::getValue($value['type']),
                         'warn' => $value['warn'],
-                        'judge' => JudgeEnum::getValue($value['judge']).$value['value'],
+                        'judge' => JudgeEnum::getValue($value['judge']) . $value['value'],
                     ]);
                 }
-               
             }
         }
         $model['warns'] = $houseItem;

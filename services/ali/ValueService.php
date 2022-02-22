@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-13 14:09:38
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-01 18:40:08
+ * @LastEditTime: 2021-07-22 13:29:14
  * @Description: 
  */
 
@@ -56,7 +56,7 @@ class ValueService extends Service
         return EchantsHelper::lineOrBarInTime(function ($start_time, $end_time, $formatting) {
             return Value::find()
                 ->select(['count(id) as count', "from_unixtime(created_at, '$formatting') as time"])
-                ->andWhere(['between', 'created_at', $start_time, $end_time])
+                ->andWhere(['between', 'event_time', $start_time, $end_time])
                 ->groupBy(['time'])
                 ->asArray()
                 ->all();

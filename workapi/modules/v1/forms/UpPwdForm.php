@@ -1,13 +1,20 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-27 10:26:50
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-10-28 10:01:16
+ * @Description: 
+ */
 
 namespace workapi\modules\v1\forms;
 
 use common\enums\StatusEnum;
 use common\helpers\RegularHelper;
-use common\models\common\SmsLog;
-use common\models\merchant\Member;
-use common\models\validators\SmsCodeValidator;
+use common\models\common\LxSmsLog;
+use common\models\validators\LxSmsCodeValidator;
 use common\enums\AccessTokenGroupEnum;
+use common\models\worker\Worker as Member;
 
 /**
  * Class UpPwdForm
@@ -30,7 +37,7 @@ class UpPwdForm extends \common\models\forms\LoginForm
         return [
             [['mobile', 'group', 'code', 'password', 'password_repetition'], 'required'],
             [['password'], 'string', 'min' => 6],
-            ['code', SmsCodeValidator::class, 'usage' => SmsLog::USAGE_UP_PWD],
+            ['code', LxSmsCodeValidator::class, 'usage' => LxSmsLog::USAGE_UP_PWD],
             ['mobile', 'match', 'pattern' => RegularHelper::mobile(), 'message' => '请输入正确的手机号码'],
             [['password_repetition'], 'compare', 'compareAttribute' => 'password'],// 验证新密码和重复密码是否相等
             ['group', 'in', 'range' => AccessTokenGroupEnum::getKeys()],

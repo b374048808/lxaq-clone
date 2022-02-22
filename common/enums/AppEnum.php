@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-01 14:26:41
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-11-25 12:27:05
+ * @Description: 
+ */
 
 namespace common\enums;
 
@@ -46,7 +53,7 @@ class AppEnum extends BaseEnum
      */
     public static function api()
     {
-        return [self::API, self::MER_API, self::OAUTH2];
+        return [self::API, self::MER_API, self::OAUTH2,self::WORKER];
     }
 
     /**

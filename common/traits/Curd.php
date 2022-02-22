@@ -116,7 +116,7 @@ trait Curd
             return ResultHelper::json(404, '找不到数据');
         }
 
-        $model->attributes = ArrayHelper::filter(Yii::$app->request->get(), ['sort', 'status']);
+        $model->attributes = ArrayHelper::filter(Yii::$app->request->get(), ['sort', 'status', 'switch']);
         if (!$model->save()) {
             return ResultHelper::json(422, $this->getError($model));
         }

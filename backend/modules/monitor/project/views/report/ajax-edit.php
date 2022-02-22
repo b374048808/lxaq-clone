@@ -3,14 +3,14 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-29 15:26:55
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-02 11:31:07
+ * @LastEditTime: 2021-11-02 10:15:48
  * @Description: 
  */
 
-use common\enums\monitor\ReportEnum;
 use yii\widgets\ActiveForm;
 use common\helpers\Url;
 use common\enums\StatusEnum;
+use common\enums\VerifyEnum;
 
 $form = ActiveForm::begin([
     'id' => $model->formName(),
@@ -28,11 +28,11 @@ $form = ActiveForm::begin([
     <h4 class="modal-title">基本信息</h4>
 </div>
 <div class="modal-body">
-<?= $form->field($model, 'type')->dropDownList(ReportEnum::getMap()) ?>
-<?= $form->field($model, 'files')->widget(common\widgets\webuploader\Files::class, [
+    <?= $form->field($model, 'file_name')->textInput() ?>
+    <?= $form->field($model, 'file')->widget(common\widgets\webuploader\Files::class, [
         'config' => [
             'pick' => [
-                'multiple' => true,
+                'multiple' => false,
             ],
             'formData' => [
                 // 不配置则不生成缩略图
@@ -40,6 +40,8 @@ $form = ActiveForm::begin([
             ],
         ]
     ]); ?>
+    <?= $form->field($model, 'description')->textarea() ?>
+    <?= $form->field($model, 'verify')->radioList(VerifyEnum::getMap()) ?>
     <?= $form->field($model, 'status')->radioList(StatusEnum::getMap()) ?>
 
 </div>

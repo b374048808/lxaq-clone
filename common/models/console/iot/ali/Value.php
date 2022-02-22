@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-22 08:41:28
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-07-20 15:44:01
+ * @Description: 
+ */
 
 namespace common\models\console\iot\ali;
 
@@ -69,5 +76,11 @@ class Value extends \common\models\base\BaseModel
     public function getDevice()
     {
         return $this->hasOne(Device::class,['id' => 'pid']);
+    }
+
+    public function getProduct()
+    {
+        return $this->hasOne(Product::class,['id' => 'pid'])
+            ->viaTable(Device::tableName(),['id' => 'pid']);
     }
 }

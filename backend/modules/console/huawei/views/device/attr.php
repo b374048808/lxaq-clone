@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-14 15:36:26
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-24 09:56:22
+ * @LastEditTime: 2021-07-20 10:37:31
  * @Description: 
  */
 
@@ -20,7 +20,7 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
             <ul class="nav nav-tabs">
                 <li><a href="<?= Url::to(['/console-huawei/device/view', 'id' => $id], $schema = true) ?>">概况</a></li>
                 <li class="active"><a href="#">属性</a></li>
-                <li><a href="<?= Url::to(['directive','id' => $id])?>">命令</a></li>
+                <li><a href="<?= Url::to(['directive', 'id' => $id]) ?>">命令</a></li>
             </ul>
             <div class="box-body">
                 <table class="table table-hover">
@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                                 <td><?= $value['newAttr']['value'][$v['title']] ?></td>
                             </tr>
                         <?php endforeach; ?>
-                        <?php endforeach; ?>
+                    <?php endforeach; ?>
                 </table>
             </div>
         </div>

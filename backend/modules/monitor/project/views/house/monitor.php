@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-23 14:15:28
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-14 09:52:04
+ * @LastEditTime: 2021-07-22 16:02:29
  * @Description: 
  */
 
@@ -27,11 +27,10 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
             <div class="box-body table-responsive">
                 <div class="row">
                     <?php foreach ($points as $key => $value) : ?>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <?= $this->render('_chart', ['id' => $model['id'], 'type' => $value]) ?>
                         </div>
                     <?php endforeach; ?>
-
                 </div>
             </div>
         </div>

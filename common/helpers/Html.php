@@ -119,6 +119,42 @@ class Html extends BaseHtml
     }
 
     /**
+     * 开关状态标签
+     *
+     * @param int $status
+     * @return mixed
+     */
+    public static function switch($switch = 1, $options = [])
+    {
+        if (!self::beforVerify('ajax-update')) {
+            return '';
+        }
+
+        $listBut = [
+            StatusEnum::DISABLED => self::tag('span', '关闭', array_merge(
+                [
+                    'class' => "btn btn-danger btn-xs",
+                    'data-toggle' => 'tooltip',
+                    'data-original-title' => '点击启用',
+                    'onclick' => "rfSwitch(this)"
+                ],
+                $options
+            )),
+            StatusEnum::ENABLED => self::tag('span', '启用', array_merge(
+                [
+                    'class' => "btn btn-success btn-xs",
+                    'data-toggle' => 'tooltip',
+                    'data-original-title' => '点击关闭',
+                    'onclick' => "rfSwitch(this)"
+                ],
+                $options
+            )),
+        ];
+
+        return $listBut[$switch] ?? '';
+    }
+
+    /**
      * @param string $text
      * @param null $url
      * @param array $options
@@ -263,7 +299,8 @@ class Html extends BaseHtml
     {
         echo Html::cssFile(Yii::getAlias('@web') . '/resources/css/rageframe.css?v=' . time());
 
-        Yii::$app->controller->view->registerCss(<<<Css
+        Yii::$app->controller->view->registerCss(
+            <<<Css
 .modal {
     z-index: 999;
 }

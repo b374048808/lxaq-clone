@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-22 08:44:52
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-07-20 15:47:55
+ * @Description: 
+ */
 namespace backend\modules\console\ali\controllers;
 
 use Yii;
@@ -7,6 +14,7 @@ use backend\controllers\BaseController;
 use common\enums\StatusEnum;
 use common\models\base\SearchModel;
 use common\models\console\iot\ali\Value;
+use TencentCloud\Cdb\V20170320\Models\TableName;
 
 /**
  * 产品
@@ -36,13 +44,15 @@ class LogController extends BaseController
             'defaultOrder' => [
                 'id' => SORT_DESC
             ],
+            'relations' => ['device'  => ['number']],
+            'partialMatchAttributes' => ['device.number'], // 模糊查询
             'pageSize' => $this->pageSize
         ]);
 
         $dataProvider = $searchModel
             ->search(Yii::$app->request->queryParams);
         $dataProvider->query
-            ->andWhere(['>=', 'status', StatusEnum::DISABLED]);
+            ->andWhere(['>=', Value::TableName().'.status', StatusEnum::DISABLED]);
 
         return $this->render($this->action->id, [
             'dataProvider' => $dataProvider,

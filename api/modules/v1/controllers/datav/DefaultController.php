@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-14 14:57:29
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-05-26 17:25:03
+ * @LastEditTime: 2021-07-23 10:36:40
  * @Description: 
  */
 
@@ -17,9 +17,12 @@ use common\models\member\HouseMap;
 use common\models\monitor\project\House;
 use common\models\monitor\project\log\WarnLog;
 use common\enums\PointEnum;
+use common\enums\WarnStateEnum;
 use common\models\monitor\project\Point;
 use yii\data\Pagination;
 use common\helpers\ArrayHelper;
+use common\models\monitor\project\point\Warn;
+
 /**
  * 默认控制器
  *
@@ -46,23 +49,26 @@ class DefaultController extends OnAuthController
      */
     public function actionIndex()
     {
-        $houseIds = HouseMap::getHouseMap(Yii::$app->user->identity->member_id);
+        $houseIds = Yii::$app->services->memberHouse->getHouseId(Yii::$app->user->identity->member_id);;
 
         // 房屋分布图
         $info['map'] = [];
 
         $model =  House::find()
             ->select(['id', 'title', 'lng', 'lat', 'status'])
-            ->with(['warn'])
             ->where(['in', 'id', $houseIds])
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
-
-        foreach ($info['map'] as &$value) {
-            $value['name'] = $value['title'];
-            $value['state'] = $value['warn']['warn'] ?: 1;
-            $value['warnText'] = WarnEnum::getValue($value['state']);
+        
+        foreach ($model as $key => $value) {
+            $model[$key]['warn'] = Yii::$app->services->pointWarn->getHouseWarn($value['id']);
+            # code...
+        }
+        foreach ($info['map'] as $key => $value) {
+            $info['map'][$key]['name'] = $value['title'];
+            $info['map'][$key]['state'] = $value['warn']['warn'] ?: 1;
+            $info['map'][$key]['warnText'] = WarnEnum::getValue($value['state']);
         }
 
         $info['warns'] = [];
@@ -84,17 +90,15 @@ class DefaultController extends OnAuthController
                 array_push($info['map'], [
                     'id'    => $value['id'],
                     'name' => $value['title'],
-                    'province'  => Yii::$app->services->provinces->getName($value['province_id']),
-                    'city'  => Yii::$app->services->provinces->getName($value['city_id']),
-                    'county'    => Yii::$app->services->provinces->getName($value['area_id']),
+                    'province'  => Yii::$app->services->provinces->getName($value['province_id'])?:'',
+                    'city'  => Yii::$app->services->provinces->getName($value['city_id'])?:'',
+                    'county'    => Yii::$app->services->provinces->getName($value['area_id'])?:'',
                     'labelOffset' => [0, 0],
                     'lat' => $value['lat'],
                     'lng' => $value['lng'],
-                    'state' => $value['warn']['warn'] ?: 0,
+                    'state' => $value['warn'] ?: 0,
                 ]);
-                if (!empty($value['warn']['warn']) && $value['warn']['warn'] > 0) {
-                    $info['warns'][$value['warn']['warn']]['value']++;
-                }
+                $info['warns'][$value['warn']]['value']++;
             }
         }
 
@@ -110,18 +114,20 @@ class DefaultController extends OnAuthController
      */
     public function actionList()
     {
-        $pointIds = HouseMap::getPointColumn(Yii::$app->user->identity->member_id);
+        $pointIds = Yii::$app->services->memberHouse->getPointId(Yii::$app->user->identity->member_id);
 
-        $info['warnCount'] = WarnLog::find()
+        $info['warnCount'] = Warn::find()
             ->where(['in', 'pid', $pointIds])
             ->andWhere(['status' => StatusEnum::ENABLED])
+            ->andWhere(['state' => WarnStateEnum::AUDIT])
             ->count();
 
         $info['list'] = [];
-        $model = WarnLog::find()
+        $model = Warn::find()
             ->with('house')
             ->where(['in', 'pid', $pointIds])
             ->andWhere(['status' => StatusEnum::ENABLED])
+            ->andWhere(['state' => WarnStateEnum::AUDIT])
             ->asArray()
             ->all();
         foreach ($model as $key => $value) {
@@ -129,7 +135,7 @@ class DefaultController extends OnAuthController
                 'id' => $value['house']['id'],
                 'title' => $value['house']['title'],
                 'date' => date('m-d H:i', $value['created_at']),
-                'hot'  => (int)$value['warn'],
+                'hot'  => WarnEnum::getValue($value['warn']),
             ]);
         }
         return $info;
@@ -137,7 +143,7 @@ class DefaultController extends OnAuthController
 
     public function actionHouseList()
     {
-        $pointIds = HouseMap::getPointColumn(Yii::$app->user->identity->member_id);
+        $pointIds = Yii::$app->services->memberHouse->getPointId(Yii::$app->user->identity->member_id);
         $request = Yii::$app->request;
         $warn = $request->get('warn',null);
 
@@ -179,13 +185,13 @@ class DefaultController extends OnAuthController
     public function actionChart()
     {
 
-        $pointIds = HouseMap::getPointColumn(Yii::$app->user->identity->member_id);
+        $pointIds = Yii::$app->services->memberHouse->getPointId(Yii::$app->user->identity->member_id);
         // 监测点分类占比
         $info['pointType'] = [];
         foreach (PointEnum::getMap() as $key => $value) {
             array_push($info['pointType'], [
                 'value' => (int)Point::find()
-                    ->where(['in', 'pid', $pointIds])
+                    ->where(['in', 'id', $pointIds])
                     ->andWhere(['type' => $key])
                     ->andWhere(['status' => StatusEnum::ENABLED])
                     ->count(),
@@ -240,13 +246,13 @@ class DefaultController extends OnAuthController
         $warnNum['timelineData'] = ['本周', '上周'];
         foreach ($this_week_arr as $key => $value) {
             $warnNum['pList'][] = $value['week_name'];
-            $warnNum['dataType'][0][] = WarnLog::find()
+            $warnNum['dataType'][0][] = Warn::find()
                 ->where(['in', 'pid', $pointIds])
                 ->andWhere(['=', 'status', StatusEnum::ENABLED])
                 ->andWhere(['>', 'warn', WarnEnum::SUCCESS])
                 ->andWhere(['between', 'created_at', $value['week_time'], $value['week_time'] + 86400])
                 ->count();
-            $warnNum['dataType'][1][] = WarnLog::find()
+            $warnNum['dataType'][1][] = Warn::find()
                 ->where(['in', 'pid', $pointIds])
                 ->andWhere(['=', 'status', StatusEnum::ENABLED])
                 ->andWhere(['>', 'warn', WarnEnum::SUCCESS])
@@ -258,9 +264,9 @@ class DefaultController extends OnAuthController
 
          // 前6个月报警趋势
          $info['monthWarns'] = [];
-         for ($i = 6; $i > 0; $i--) {
-             $startTime = strtotime(-$i . 'month');
-             $info['monthWarns']['num'][] = WarnLog::find()
+         for ($i = 6; $i >= 0; $i--) {
+             $startTime = strtotime(-$i . 'month',strtotime(date('Y-m-01')));
+             $info['monthWarns']['num'][] = Warn::find()
                  ->where(['in', 'pid', $pointIds])
                  ->andWhere(['=', 'status', StatusEnum::ENABLED])
                  ->andWhere(['>', 'warn', WarnEnum::SUCCESS])

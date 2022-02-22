@@ -5,11 +5,12 @@ namespace backend\modules\monitor\project\controllers;
 use Yii;
 use common\traits\Curd;
 use backend\controllers\BaseController;
-use common\enums\monitor\BellStateEnum;
 use common\enums\PointEnum;
 use common\enums\StatusEnum;
 use common\enums\TimeUnitEnum;
 use common\enums\ValueStateEnum;
+use common\enums\ValueTypeEnum;
+use common\enums\WarnEnum;
 use common\models\monitor\project\House;
 use common\models\base\SearchModel;
 use common\models\monitor\project\Item;
@@ -17,13 +18,11 @@ use common\models\monitor\project\Point;
 use common\helpers\ArrayHelper;
 use common\helpers\ResultHelper;
 use common\helpers\ExcelHelper;
-use common\models\monitor\project\house\Bell;
+use common\models\console\iot\huawei\Device;
 use common\models\monitor\project\house\Report;
-use common\models\monitor\project\point\AliMap;
 use common\models\monitor\project\point\HuaweiMap;
 use common\models\monitor\project\point\Value;
 use common\models\monitor\project\rule\Item as ProjectRuleItem;
-use common\models\monitor\rule\RuleItem;
 use yii\data\ActiveDataProvider;
 
 /**
@@ -95,43 +94,45 @@ class HouseController extends BaseController
             'query' => $query,
         ]);
 
+        $pointIds =  ArrayHelper::getColumn($pointModel, 'id', $keepKeys = true);
+
         // 设备的安装点位
         $pointModel = Point::find()
+            ->with(['device', 'newValue', 'deviceMap'])
             ->where(['pid' => $id])
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
-        $pointIds =  ArrayHelper::getColumn($pointModel, 'id', $keepKeys = true);
-        $huaweiDevice = HuaweiMap::find()
-            ->with('device')
-            ->where(['in', 'point_id', $pointIds])
-            ->andWhere(['status' => StatusEnum::ENABLED])
-            ->asArray()
-            ->all();
-        $aliDevice = AliMap::find()
-            ->with('device')
-            ->where(['in', 'point_id', $pointIds])
-            ->andWhere(['status' => StatusEnum::ENABLED])
-            ->asArray()
-            ->all();
 
-        $devices = array_merge($huaweiDevice, $aliDevice);
-
-        // 提醒列表
-        $bellQuery = Bell::find()
+        $reportModel = Report::find()
+            ->with('user')
             ->where(['pid' => $id])
-            ->andWhere(['state' => BellStateEnum::UNFINISHED])
-            ->orderBy('event_time ASC');
-        $bellProvider = new ActiveDataProvider([
-            'query' => $bellQuery,
-        ]);
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->limit(10)
+            ->orderBy('id desc')
+            ->asArray()
+            ->all();
+
+
+        $pointIds = House::getPointColumn($id);
+        // 最新数据
+        $valueModel = Value::find()
+            ->with('parent')
+            ->where(['in', 'pid', $pointIds])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->limit(10)
+            ->orderBy('event_time desc')
+            ->asArray()
+            ->all();
+
 
         return $this->render($this->action->id, [
             'model' => $model,
             'points' => $points,
             'dataProvider' => $dataProvider,
-            'devices'   => $devices,
-            'bellProvider'  => $bellProvider
+            'valueList' => $valueModel,
+            'pointModel' => $pointModel,
+            'reportModel' => $reportModel
         ]);
     }
 
@@ -216,6 +217,26 @@ class HouseController extends BaseController
         }
     }
 
+
+    public function actionAjaxDevice()
+    {
+        $request = Yii::$app->request;
+        $id = Yii::$app->request->get('id', null);
+        $model = $id ? HuaweiMap::findOne($id) : new HuaweiMap();
+        $model->point_id = $request->get('point_id', '') ?: $model->point_id;
+        if ($model->load(Yii::$app->request->post())) {
+            $model->install_time = strtotime($model->install_time);
+            return $model->save()
+                ? $this->redirect(Yii::$app->request->referrer)
+                : $this->message($this->getError($model), $this->redirect(Yii::$app->request->referrer), 'error');
+        }
+
+        return $this->renderAjax($this->action->id, [
+            'model' => $model,
+            'devices' => Device::getDropDown()
+        ]);
+    }
+
     /**
      * 
      * 
@@ -265,6 +286,89 @@ class HouseController extends BaseController
         }
 
         return $res;
+    }
+
+    /**
+     * 数据列表
+     * 
+     * @return mixed
+     */
+    public function actionValueList($id)
+    {
+        $request = Yii::$app->request;
+        $pointIds = House::getPointColumn($id);
+
+        $from_date =  $request->get('from_date', date('Y-m-d', strtotime("-6 day")));
+        $to_date = $request->get('to_date', date('Y-m-d'));
+        $state = $request->get('state', ValueStateEnum::ENABLED);
+
+        $searchModel = new SearchModel([
+            'model' => Value::class,
+            'scenario' => 'default',
+            'defaultOrder' => [
+                'id' => SORT_DESC
+            ],
+            'relations' => ['parent' => ['title', 'type']],
+            'pageSize' => $this->pageSize
+        ]);
+
+        $dataProvider = $searchModel
+            ->search(Yii::$app->request->queryParams);
+        $dataProvider->query
+            ->andWhere(['state' => $state])
+            ->andWhere(['in', Value::tableName() . '.pid', $pointIds])
+            ->andFilterWhere(['between',  Value::tableName() . '.event_time', strtotime($from_date), strtotime("+1 day", strtotime($to_date))])
+            ->andWhere(['>=',  Value::tableName() . '.status', StatusEnum::DISABLED]);
+
+        return $this->render($this->action->id, [
+            'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'from_date' => $from_date,
+            'to_date'   => $to_date,
+            'id'   => $id,
+            'state' => $state
+        ]);
+    }
+
+    /**
+     * 导出Excel
+     *
+     * @return bool
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     */
+    public function actionExport($id)
+    {
+        // [名称, 字段名, 类型, 类型规则]
+        $request = Yii::$app->request;
+        //默认输出一周数据
+        $pointIds = House::getPointColumn($id);
+        $from_date =  $request->get('from_date', date('Y-m-d', strtotime("-6 day")));
+        $to_date = $request->get('to_date', date('Y-m-d'));
+        $state = $request->get('state', ValueStateEnum::ENABLED);
+        $model = $this->findModel($id);
+
+        $data = Value::find()
+            ->with(['parent'])
+            ->where(['state' => $state])
+            ->andWhere(['=', 'status', StatusEnum::ENABLED])
+            ->andWhere(['in', Value::tableName() . '.pid', $pointIds])
+            ->andWhere(['between', 'event_time', strtotime($from_date), strtotime("+1 day", strtotime($to_date))])
+            ->asArray()
+            ->all();
+        foreach ($data as $key => $value) {
+            $data[$key]['title'] = $value['parent']['title'];
+            $data[$key]['pointType'] = PointEnum::getValue($value['parent']['type']);
+        }
+        $header = [
+            ['点位', 'title', 'text'],
+            ['类型', 'pointType', 'text'],
+            ['数据类型', 'type', 'selectd', ValueTypeEnum::getMap()],
+            ['数据', 'value', 'text'],
+            ['报警', 'warn', 'selectd', WarnEnum::getMap()],
+            ['采集时间', 'event_time', 'date', 'Y-m-d H:i:s'],
+        ];
+        return ExcelHelper::exportData($data, $header, $model->title . '数据导出_' . time());
     }
 
 

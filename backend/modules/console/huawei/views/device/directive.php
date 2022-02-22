@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-21 11:05:36
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-24 09:58:11
+ * @LastEditTime: 2021-08-30 09:13:54
  * @Description: 
  */
 
@@ -32,13 +32,11 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                 <table class="table table-hover">
                     <tr>
                         <th>服务</th>
-                        <th>属性</th>
                         <th>操作</th>
                     </tr>
                     <?php foreach ($model['directive'] as $key => $value) : ?>
                         <tr>
                             <td><?= $value['title'] ?></td>
-                            <td><?= $value['content'] ?></td>
                             <td>
                                 <?= Html::a('下发', ['/console-huawei/device/get-directive','id' => $model['id'],'directive_id' => $value['id']], $options = [
                                     'class' => 'purple',

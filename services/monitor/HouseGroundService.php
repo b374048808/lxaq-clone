@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-04-19 11:30:28
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-12-08 10:04:38
+ * @Description: 
+ */
 
 namespace services\monitor;
 
@@ -35,6 +42,17 @@ class HouseGroundService extends Service
         $data = ArrayHelper::map(ArrayHelper::itemsMergeDropDown($models), 'id', 'title');
 
         return ArrayHelper::merge([0 => '顶级菜单'], $data);
+    }
+
+    public function getTitleDown(){
+        $list = Ground::find()
+            ->where(['>=', 'status', StatusEnum::DISABLED])
+            ->select(['id', 'title', 'pid', 'level'])
+            ->asArray()
+            ->all();
+
+        $models = ArrayHelper::itemsMerge($list);
+        return ArrayHelper::map(ArrayHelper::itemsMergeDropDown($models), 'id', 'title');
     }
 
      /**

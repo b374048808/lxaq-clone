@@ -25,7 +25,7 @@ class ArticleCate extends \common\models\base\BaseModel
 {
     use Tree, MerchantBehavior;
 
-    /**
+    /** 
      * {@inheritdoc}
      */
     public static function tableName()

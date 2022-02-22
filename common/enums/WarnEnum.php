@@ -1,4 +1,11 @@
 <?php
+/*
+ * @Author: Xjie<374048808@qq.com>
+ * @Date: 2021-03-16 15:46:41
+ * @LastEditors: Xjie<374048808@qq.com>
+ * @LastEditTime: 2021-08-03 16:01:53
+ * @Description: 
+ */
 
 namespace common\enums;
 
@@ -40,4 +47,14 @@ class WarnEnum extends BaseEnum
         self::FOUR => '<span class="label label-danger">四级预警</span>',
     ];
 
+
+    /**
+     * @var array
+     */
+    public static $tagType = [
+        self::SUCCESS => 'success',
+        self::ONE => 'primary',
+        self::TWO => 'warning', 
+        self::THREE => 'danger',
+    ];
 }

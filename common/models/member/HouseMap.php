@@ -65,11 +65,12 @@ class HouseMap extends \common\models\base\BaseModel
     }
 
 
-    public static function getPointColumn($member_id)
+    public static function getPointColumn($member_id,$pid = null)
     {
         $house_id = self::getHouseMap($member_id);
         $model = Point::find()
             ->where(['in','pid',$house_id])
+            ->andFilterWhere(['pid' => $pid])
             ->andWhere(['status' =>StatusEnum::ENABLED])
             ->asArray()
             ->all();

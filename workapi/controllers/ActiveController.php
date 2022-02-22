@@ -59,7 +59,7 @@ class ActiveController extends \yii\rest\ActiveController
                 'optional' => $this->signOptional, // 不进行认证判断方法
             ];
         }
-
+ 
         $behaviors['authenticator'] = [
             'class' => CompositeAuth::class,
             'authMethods' => [
@@ -154,7 +154,7 @@ class ActiveController extends \yii\rest\ActiveController
              return true;
          }
          // 开始权限校验
-         if (!WorkerAuth::verify($permissionName)) {
+         if (!WorkerAuth::verify($permissionName) && !in_array(Yii::$app->user->identity->member_id,Yii::$app->params['adminAccount'])) {
              throw new \yii\web\BadRequestHttpException('对不起，您现在还没获此操作的权限');
          }
 

@@ -1,9 +1,11 @@
 <?php
 
+use common\enums\device\SwitchEnum;
 use common\helpers\BaseHtml;
+use common\helpers\Html;
+use common\helpers\Url;
 use yii\grid\GridView;
 use common\models\console\iot\huawei\Product;
-use common\models\monitor\project\point\HuaweiMap;
 
 $this->title = '设备列表';
 $this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
@@ -47,8 +49,18 @@ $this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
                     //重新定义分页样式
                     'tableOptions' => ['class' => 'table table-hover'],
                     'columns' => [
-                        'device_name',
-                        'number',
+                        [
+                            'class' => 'yii\grid\CheckboxColumn',
+                            'name' => 'points',
+                        ],
+                        [
+                            'attribute' => 'number',
+                            'value' => function ($model) {
+                                return $model['number'] . ' ' . $model->deviceStatus . ' ' . $model->deviceVoltage;
+                            },
+                            'filter' => true, //不显示搜索框
+                            'format' => 'html',
+                        ],
                         [
                             'header' => '所属产品',
                             'attribute' => 'pid',
@@ -57,35 +69,24 @@ $this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
                             'format' => 'html',
                         ],
                         [
-                            'header' => '关联监测点数量',
-                            'value' => function($model){
-                                return HuaweiMap::getPointCount($model['id']);
-                            },
-                            'filter' => false, //不显示搜索框
-                            'format' => 'html',
-                        ],
-                        [
-                            'header' => '状态',
+                            'header' => '开启',
+                            'attribute' => 'switch',
                             'value' => function ($model) {
-                                return $model->deviceStatus . ' ' . $model->deviceVoltage;
+                                return Html::switch($model['switch']);
                             },
-                            'filter' => true, //不显示搜索框
-                            'format' => 'html',
+                            'filter' => SwitchEnum::getMap(), //不显示搜索框
+                            'format' => 'raw',
                         ],
                         [
-                            'header' => '状态/启用状态',
-                            'value' => function ($model) {
-                                return $model->status ? '开启' : '禁止';
-                            },
-                            'filter' => false, //不显示搜索框
-                            'format' => 'html',
-                        ],
-                        [
-                            'header' => '最后上线时间',
-                            'attribute' => 'newValue_created_at',
-                            'value' => 'newValue.created_at',
-                            'filter' => false, //不显示搜索框
+                            'attribute' => 'last_time',
                             'format' => ['date', 'php:Y-m-d H:i:s'],
+                        ],
+                        'card',
+                        [
+
+                            'attribute' => 'over_time',
+                            'format' => ['date', 'php:Y-m-d'],
+                            'filter' => false,
                         ],
                         [
                             'header' => "操作",
@@ -93,17 +94,131 @@ $this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
                             'template' => '{view} {destroy}',
                             'buttons' => [
                                 'view' => function ($url, $model, $key) {
-                                    return BaseHtml::edit(['view', 'id' => $model->id],'查看');
+                                    return BaseHtml::edit(['view', 'id' => $model->id], '查看');
                                 },
                                 'destroy' => function ($url, $model, $key) {
                                     return BaseHtml::delete(['destroy', 'id' => $model->id]);
                                 },
                             ]
-                        ],
+                        ]
                     ],
                 ]); ?>
-                
+
+                <?= Html::a('批量删除', "javascript:void(0);", ['class' => 'btn btn-danger checkDelete']) ?>
+                <?= Html::a('下发指令', "javascript:void(0);", [
+                    'class' => 'btn btn-info',
+                    'data-toggle' => 'modal',
+                    'data-target' => '#myModal',
+                ]) ?>
+
             </div>
         </div>
     </div>
 </div>
+<!-- 动态模糊框写入指令 -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">命令输入框</h4>
+            </div>
+            <div class="modal-body">
+                <?= Html::input('text', 'post-content', '', ['class' => 'form-control', 'placeholder' => '命令16进制']); ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <?= Html::a('下发指令', "javascript:void(0);", [
+                    'class' => 'btn btn-info checkDirective',
+                ]) ?>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // 小模拟框清除
+    // 启用状态 status 1:启用;0禁用;
+    function rfSwitch(obj) {
+        let id = $(obj).attr('data-id');
+        let status = 1;
+        self = $(obj);
+        if (self.hasClass("btn-success")) {
+            status = 0;
+        }
+
+        if (!id) {
+            id = $(obj).parent().parent().attr('id');
+        }
+
+        if (!id) {
+            id = $(obj).parent().parent().attr('data-key');
+        }
+
+        $.ajax({
+            type: "get",
+            url: "<?= Url::to(['ajax-update']) ?>",
+            dataType: "json",
+            data: {
+                id: id,
+                switch: status
+            },
+            success: function(data) {
+                console.log(data)
+                if (parseInt(data.code) === 200) {
+                    if (self.hasClass("btn-success")) {
+                        self.removeClass("btn-success").addClass("btn-danger");
+                        self.attr("data-toggle", 'tooltip');
+                        self.attr("data-original-title", '点击关闭');
+                        self.text('关闭');
+                    } else {
+                        self.removeClass("btn-danger").addClass("btn-success");
+                        self.attr("data-toggle", 'tooltip');
+                        self.attr("data-original-title", '点击启用');
+                        self.text('启用');
+                    }
+                } else {
+                    rfAffirm(data.message);
+                }
+            }
+        });
+    }
+</script>
+<?php
+$deleteUrl = Url::to(["delete-all"]);
+$directiveUrl = Url::to(["directive-all"]);
+$js = <<<JS
+  
+    $(".checkDelete").on("click", function () {
+        //注意这里的$("#grid")，要跟我们第一步设定的options id一致
+        var keys = $("#grid").yiiGridView("getSelectedRows");
+        $.ajax({
+            url:"$deleteUrl",
+            type:"post",
+            data:{data:keys},
+            dataType:"json",
+            success:function(e){
+                e?location.reload():alert('更新失败!');
+            }
+        })
+    });
+    $(".checkDirective").on("click", function () {
+        //注意这里的$("#grid")，要跟我们第一步设定的options id一致
+        var keys = $("#grid").yiiGridView("getSelectedRows");
+        var content =  $("input[name=post-content]").val() ;
+        if (keys.length>0 && content) {
+            $.ajax({
+                url:"$directiveUrl",
+                type:"post",
+                data:{data:keys,content:content},
+                dataType:"json",
+                success:function(e){
+                    console.log(e.message);
+                    e?console.log(e):alert('更新失败!');
+                }
+            })            
+        }else{
+            alert('设备未选择或命令为空！');
+        }
+    });
+JS;
+$this->registerJs($js);

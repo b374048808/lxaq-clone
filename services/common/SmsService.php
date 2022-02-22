@@ -98,6 +98,7 @@ class SmsService extends Service
 
         return $this->realSend($mobile, $code, $usage, $member_id = 0, $ip);
     }
+    
 
     /**
      * 真实发送短信
@@ -174,6 +175,10 @@ class SmsService extends Service
             throw new UnprocessableEntityHttpException('短信发送失败');
         }
     }
+
+
+    // 预警通知短信
+    
 
     /**
      * @param $type

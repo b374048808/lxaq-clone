@@ -54,7 +54,7 @@ class Point extends \common\models\base\BaseModel
     {
         return [
             [['pid', 'title'], 'required'],
-            [['pid', 'type', 'sort', 'news', 'warn', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['pid', 'type', 'warn_switch', 'warn_type', 'sort', 'news', 'warn', 'status', 'created_at', 'updated_at'], 'integer'],
             [['covers', 'lnglat'], 'safe'],
             [['lng', 'lat', 'initial_value'], 'number'],
             [['title'], 'string', 'max' => 50],
@@ -73,10 +73,12 @@ class Point extends \common\models\base\BaseModel
             'pid' => '房屋',
             'title' => '标题',
             'type' => '类型',
+            'warn_type' => '倾斜危险类型',
             'location' => '位置',
             'covers' => '图像',
             'news' => '朝向',
             'warn' => '报警',
+            'warn_switch' => '报警开关',
             'lng' => 'Lng',
             'lat' => 'Lat',
             'initial_value' => '初始数据',
@@ -165,7 +167,7 @@ class Point extends \common\models\base\BaseModel
             ->asArray()
             ->all();
 
-        return ArrayHelper::getColumn($model,'id', $keepKeys = true);
+        return ArrayHelper::getColumn($model, 'id', $keepKeys = true);
     }
 
     /**
@@ -183,31 +185,31 @@ class Point extends \common\models\base\BaseModel
             ->asArray()
             ->all();
 
-        return ArrayHelper::map($model,'id','title');
+        return ArrayHelper::map($model, 'id', 'title');
     }
 
     /**
      * @param {*}
      * @return {*}
      * @throws: 
-     */    
+     */
     public function getDeviceValue()
     {
-        return $this->hasOne(HuaweiValue::class,['pid' => 'device_id'])
+        return $this->hasOne(HuaweiValue::class, ['pid' => 'device_id'])
             ->andWhere(['serviceType' => 'Heartbeat'])
             ->orderBy('event_time DESC')
-            ->viaTable(HuaweiMap::tableName(),['point_id' => 'id']);
+            ->viaTable(HuaweiMap::tableName(), ['point_id' => 'id']);
     }
 
     /**
      * @param {*}
      * @return {*}
      * @throws: 关联报警
-     */    
+     */
     public function getWarnState()
     {
-        return $this->hasOne(Warn::class,['pid' => 'id'])
-            ->andWhere(['>','warn',WarnEnum::SUCCESS])
+        return $this->hasOne(Warn::class, ['pid' => 'id'])
+            ->andWhere(['>', 'warn', WarnEnum::SUCCESS])
             ->andWhere(['state' => WarnStateEnum::AUDIT])
             ->orderBy('id DESC');
     }
@@ -216,22 +218,34 @@ class Point extends \common\models\base\BaseModel
      * @param {*}
      * @return {*}
      * @throws: 关联华为
-     */    
-    public function getHuaweiDevice()
+     */
+    public function getDevice()
     {
-        return $this->hasOne(Device::class,['id' => 'device_id'])
-            ->viaTable(HuaweiMap::tableName(),['point_id' => 'id']);
+        return $this->hasOne(Device::class, ['id' => 'device_id'])
+            ->viaTable(HuaweiMap::tableName(), ['point_id' => 'id']);
     }
 
     /**
      * @param {*}
      * @return {*}
      * @throws: 关联华为
-     */    
+     */
     public function getAliDevice()
     {
-        return $this->hasOne(AliDevice::class,['id' => 'device_id'])
-            ->viaTable(AliMap::tableName(),['point_id' => 'id']);
+        return $this->hasOne(AliDevice::class, ['id' => 'device_id'])
+            ->viaTable(AliMap::tableName(), ['point_id' => 'id']);
+    }
+
+
+
+    /**
+     * 关联命令
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDeviceMap()
+    {
+        return $this->hasOne(HuaweiMap::class, ['point_id' => 'id']);
     }
 
 

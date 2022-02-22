@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-10 10:46:17
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-05-31 17:24:22
+ * @LastEditTime: 2021-07-23 10:27:59
  * @Description: 
  */
 
@@ -27,6 +27,8 @@ use common\helpers\ArrayHelper;
 use common\models\monitor\project\Point;
 use common\models\monitor\project\point\AliMap;
 use common\models\monitor\project\point\HuaweiMap;
+use common\models\monitor\project\point\Value;
+use common\models\monitor\project\rule\Item;
 use common\models\monitor\rule\Child;
 use Swoole\Http\Status;
 
@@ -59,7 +61,7 @@ class HouseController extends OnAuthController
      */
     public function actionIndex($page = 1, $limit = 20)
     {
-        $houseIds = HouseMap::getHouseMap(Yii::$app->user->identity->member_id);
+        $houseIds =  $houseIds = Yii::$app->services->memberHouse->getHouseId(Yii::$app->user->identity->member_id);;
 
         $request = Yii::$app->request;
         $title = $request->get('title', NULL);
@@ -68,7 +70,7 @@ class HouseController extends OnAuthController
                 'title', 'id', 'cover',
                 'address', 'status', 'lng', 'lat'
             ])
-            ->with(['warn', 'point' => function ($queue) {
+            ->with(['point' => function ($queue) {
                 $queue->groupBy('type')->select(['title', 'type', 'pid']);
             }])
             ->andWhere(['in', 'id', $houseIds])
@@ -78,8 +80,7 @@ class HouseController extends OnAuthController
         $model = $query->offset($pages->offset)->limit($pages->limit)->asArray()->all();
 
         foreach ($model as $key => &$value) {
-            $value['warn'] = $value['warn']['warn'] ?: 0;
-            $value['warnText'] = WarnEnum::getValue($value['warn']);
+            $value['warnText'] = WarnEnum::getValue(Yii::$app->services->pointWarn->getHouseWarn($value['id']));
             $type = ArrayHelper::getColumn($value['point'], 'type');
             $value['type'] = '';
             foreach ($type as $key => $v) {
@@ -104,13 +105,18 @@ class HouseController extends OnAuthController
     public function actionView($id)
     {
         $model = House::find()
-            ->with('warn')
             ->where(['id' => $id])
             ->asArray()
             ->one();
+
         // 房屋规则报警值
+        $ruleItem = Item::find()
+            ->where(['pid' => $id])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+
         $houseItem = [];
-        $ruleItem = Child::getChild($id);
         foreach (PointEnum::getMap() as $key => $value) {
             $houseItem[$key] = [
                 'alert' => PointEnum::getAlert($key),
@@ -120,15 +126,10 @@ class HouseController extends OnAuthController
         }
         // 规则
         foreach ($ruleItem as $key => $value) {
-            if (!empty($value['item'])) {
-                // 触发器
-                foreach ($value['item'] as $k => $val) {
-                    array_push($houseItem[$val['type']]['data'], [
-                        'warn' => WarnEnum::getValue($val['warn']),
-                        'judge' => JudgeEnum::getValue($val['judge']) . $val['value'],
-                    ]);
-                }
-            }
+            array_push($houseItem[$value['type']]['data'], [
+                'warn' => WarnEnum::getValue($value['warn']),
+                'judge' => JudgeEnum::getValue($value['judge']) . $value['value'],
+            ]);
         }
         $model['warns'] = $houseItem;
         $model = $this->getArrayCover($model);
@@ -154,8 +155,8 @@ class HouseController extends OnAuthController
             ->count();
         $model['device_count'] = $aliCount + $huaweiCount;
 
-        $model['warn'] = $model['warn']['warn'] ? :0;
-        $model['warnText'] = $model['warn']['warn'] ? WarnEnum::getValue($model['warn']['warn']):WarnEnum::getValue(0);
+        $model['warn'] = Yii::$app->services->pointWarn->getHouseWarn($model['id']);
+        $model['warnText'] = $model['warn'] ? WarnEnum::getValue($model['warn']) : WarnEnum::getValue(0);
 
 
         return $model;
@@ -178,8 +179,6 @@ class HouseController extends OnAuthController
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
-        // 监测点类型数据
-        $typeModel = PointEnum::getModel($type);
         $res['chartTime'] = $res['data'] = $res['legend'] = [];
         // 时间，X轴
         for ($i = strtotime('-3 month'); $i < time(); $i += 60 * 60 * 24) {
@@ -191,7 +190,7 @@ class HouseController extends OnAuthController
             $dataArray = [];
             $j = 0;
             for ($i = strtotime('-3 month'); $i < time(); $i += 60 * 60 * 24) {
-                $data = $typeModel::find()
+                $data = Value::find()
                     ->where(['pid' => $value['id']])
                     ->andwhere(['type' => $chartType])
                     ->andWhere(['between', 'event_time', $i, $i + 60 * 60 * 24])
@@ -210,17 +209,17 @@ class HouseController extends OnAuthController
                 'data' => $dataArray
             ]);
         }
+
+
         // 房屋规则报警值
-        $houseItem = [];
-        $ruleItem = Child::getChild($id, $type);
-        foreach ($ruleItem as $key => $value) {
-            if (!empty($value['item'])) {
-                $houseItem = array_merge($houseItem, $value['item']);
-                # code...
-            }
-            # code...
-        }
-        $res['warns'] = ArrayHelper::getColumn($houseItem, 'value');
+        $ruleItem = Item::find()
+            ->where(['pid' => $id])
+            ->andWhere(['type' => $type])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+
+        $res['warns'] = ArrayHelper::getColumn($ruleItem, 'value');
 
 
 

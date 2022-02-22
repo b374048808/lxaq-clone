@@ -15,6 +15,10 @@ use common\models\base\User;
 use common\helpers\RegularHelper;
 use common\traits\Tree;
 use common\models\rbac\AuthAssignment;
+use common\models\rbac\AuthRole;
+use common\helpers\ArrayHelper;
+use yii\rbac\Role;
+
 /**
  * This is the model class for table "rf_worker".
  *
@@ -67,10 +71,17 @@ class Worker extends User
         return [
             [['username', 'password_hash'], 'required', 'on' => ['backendCreate']],
             [['password_hash'], 'string', 'min' => 6, 'on' => ['backendCreate']],
+            [['realname'], 'string', 'max' => 50,'on' => ['backendCreate']],
             [['username'], 'unique', 'filter' => function (ActiveQuery $query) {
                 return $query->andWhere(['>=', 'status', StatusEnum::DISABLED]);
             }, 'on' => ['backendCreate']],
-            [['id', 'current_level', 'level', 'type', 'gender','visit_count', 'role', 'last_time', 'province_id', 'city_id', 'area_id', 'pid', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['username', 'mobile'], 'string', 'max' => 20, 'on' => ['backendCreate']],
+            ['mobile', 'match', 'pattern' => RegularHelper::mobile(), 'message' => '不是一个有效的手机号码', 'on' => ['backendCreate']],
+            [['mobile'], 'unique', 'filter' => function (ActiveQuery $query) {
+                return $query
+                    ->andWhere(['>=', 'status', StatusEnum::DISABLED]);
+            }, 'on' => ['backendCreate']],
+            [['id', 'current_level', 'dept_id', 'level', 'type', 'gender', 'visit_count', 'role', 'last_time', 'province_id', 'city_id', 'area_id', 'pid', 'status', 'created_at', 'updated_at'], 'integer'],
             [['birthday'], 'safe'],
             [['username', 'qq', 'home_phone', 'mobile'], 'string', 'max' => 20],
             [['password_hash', 'password_reset_token', 'head_portrait'], 'string', 'max' => 150],
@@ -79,7 +90,7 @@ class Worker extends User
             [['email'], 'string', 'max' => 60],
             [['tree'], 'string', 'max' => 2000],
             [['last_ip'], 'string', 'max' => 16],
-            ['mobile', 'match', 'pattern' => RegularHelper::mobile(),'message' => '不是一个有效的手机号码'],
+            ['mobile', 'match', 'pattern' => RegularHelper::mobile(), 'message' => '不是一个有效的手机号码'],
             [['mobile'], 'unique', 'filter' => function (ActiveQuery $query) {
                 return $query
                     ->andWhere(['>=', 'status', StatusEnum::DISABLED]);
@@ -101,6 +112,7 @@ class Worker extends User
             'type' => '类型',
             'nickname' => '昵称',
             'realname' => '真实姓名',
+            'dept_id'   => '部门',
             'head_portrait' => '头像',
             'current_level' => '当前级别',
             'gender' => '性别',
@@ -133,7 +145,7 @@ class Worker extends User
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios['backendCreate'] = ['username', 'password_hash'];
+        $scenarios['backendCreate'] = ['username', 'password_hash','realname','mobile'];
 
         return $scenarios;
     }
@@ -146,6 +158,13 @@ class Worker extends User
     public function getAssignment()
     {
         return $this->hasOne(AuthAssignment::class, ['user_id' => 'id'])
+            ->where(['app_id' => AppEnum::WORKER]);
+    }
+
+    public function getRole()
+    {
+        return $this->hasOne(AuthRole::class, ['id' => 'role_id'])
+            ->viaTable(AuthAssignment::tableName(), ['user_id' => 'id'])
             ->where(['app_id' => AppEnum::WORKER]);
     }
 
@@ -222,5 +241,21 @@ class Worker extends User
                 ],
             ]
         ];
+    }
+
+    public static function getRealname($id){
+        $model = self::findOne($id);
+        return $model['realname'];
+    }
+
+    public static function getMap($role = false)
+    {
+        $workers = Worker::find()
+            ->with('role')
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+
+        return ArrayHelper::map($workers, 'id', 'realname');
     }
 }

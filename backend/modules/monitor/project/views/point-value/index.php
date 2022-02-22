@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-29 11:49:23
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-07-16 09:59:05
+ * @LastEditTime: 2021-07-23 14:19:24
  * @Description: 
  */
 
@@ -13,19 +13,27 @@ use common\enums\ValueTypeEnum;
 use yii\grid\GridView;
 use common\enums\WarnEnum;
 use common\enums\ValueStateEnum;
+use kartik\daterange\DateRangePicker;
+use yii\widgets\ActiveForm;
 use yii\helpers\Url;
+use common\helpers\ArrayHelper;
 
 
 
 $this->title = (Yii::$app->request->get('valueType') == ValueTypeEnum::MANUAL) ? '人工数据' : '设备数据';
-$this->params['breadcrumbs'][] = ['label' => '房屋列表', 'url' => ['/monitor-project/house/index']];
-$this->params['breadcrumbs'][] = ['label' => $pointModel->house->title, 'url' => ['/monitor-project/house/view', 'id' => $pointModel->house->id], [
-    'data-toggle' => 'modal',
-    'data-target' => '#ajaxModal',
-]];
-$this->params['breadcrumbs'][] = ['label' => $pointModel->title, 'url' => ['/monitor-project/point/view', 'id' => $pointModel->id]];
+if ($pointModel) {
+    $this->params['breadcrumbs'][] = ['label' => '房屋列表', 'url' => ['/monitor-project/house/index']];
+    $this->params['breadcrumbs'][] = ['label' => $pointModel->house->title, 'url' => ['/monitor-project/house/view', 'id' => $pointModel->house->id]];
+    $this->params['breadcrumbs'][] = ['label' => $pointModel->title, 'url' => ['/monitor-project/point/view', 'id' => $pointModel->id]];
+}
+
 $this->params['breadcrumbs'][] = ['label' => $this->title];
 
+$addon = <<< HTML
+<span class="input-group-addon">
+    <i class="glyphicon glyphicon-calendar"></i>
+</span>
+HTML;
 ?>
 
 <div class="row">
@@ -38,16 +46,60 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                         'data-toggle' => 'modal',
                         'data-target' => '#ajaxModalLg',
                     ]) ?>
-                    <?= Html::linkButton(['value-rand', 'id' => $pointModel['id']], '<i class="fa fa-random"></i> 生成数据',[
+                    <?= Html::linkButton(['value-rand', 'id' => $pointModel['id']], '<i class="fa fa-random"></i> 生成数据', [
                         'data-toggle' => 'modal',
                         'data-target' => '#ajaxModal',
                     ]); ?>
-                    <?= Html::linkButton(['recyle', 'pid' => $pointModel['id'], 'type' => $pointModel['type']], '<i class="fa fa-trash"></i> 回收站'); ?>
-                    <?= Html::linkButton(['excel-file', 'pid' => $pointModel['id']], '<i class="fa fa-cloud-download"></i> 批量上传', [
+                    <?= Html::linkButton(['export', 'id' => $id, 'from_date' => $from_date, 'to_date' => $to_date ,'type' => $type, 'warn' => $warn,'pid' => $pointModel->id], '<i class="fa fa-upload"></i> 导出Excel'); ?>
+                    <?= Html::linkButton(['excel-file', 'pid' => $pointModel['id']], '<i class="fa fa-cloud-upload"></i> 批量上传', [
                         'data-toggle' => 'modal',
                         'data-target' => '#ajaxModal',
                     ]); ?>
-                    <?= Html::linkButton(['download', 'pid' => $pointModel['id'], 'type' => $pointModel['type']], '<i class="fa fa-cloud-download"></i> 下载模板'); ?>
+
+                </div>
+            </div>
+            <div class="box-body">
+                <?php $form = ActiveForm::begin([
+                    'action' => Url::to(['index', 'pid' => $pointModel['id']]),
+                    'method' => 'get'
+                ]); ?>
+
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="input-group drp-container">
+                            <?= DateRangePicker::widget([
+                                'name' => 'queryDate',
+                                'value' => $from_date . '-' . $to_date,
+                                'readonly' => 'readonly',
+                                'useWithAddon' => true,
+                                'convertFormat' => true,
+                                'startAttribute' => 'from_date',
+                                'endAttribute' => 'to_date',
+                                'startInputOptions' => ['value' => $from_date ?: date('Y-m-d', strtotime("-6 day"))],
+                                'endInputOptions' => ['value' => $to_date ?: date('Y-m-d')],
+                                'pluginOptions' => [
+                                    'locale' => ['format' => 'Y-m-d'],
+                                ]
+                            ]) . $addon; ?>
+                            
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="input-group drp-container" style="display: flex;">
+                        <?= Html::dropDownList('type', $selection = $type, $items = ArrayHelper::merge(['' => '全部'], ValueTypeEnum::getMap()), $options = [
+                                'class' => 'form-control',
+                                'style' => 'margin-left:20px'
+                            ]) ?>
+                            <?= Html::dropDownList('warn', $selection = $warn, $items = ArrayHelper::merge(['' => '全部'], WarnEnum::getMap()), $options = [
+                                'class' => 'form-control',
+                                'style' => 'margin-left:20px'
+                            ]) ?>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <?= Html::tag('span', '<button class="btn btn-white"><i class="fa fa-search"></i> 搜索</button>', ['class' => 'input-group-btn']) ?>
+                    </div>
+                    <?php ActiveForm::end(); ?>
                 </div>
             </div>
             <div class="box-body table-responsive">
@@ -72,7 +124,10 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             'filter' => false, //不显示搜索框
                             'format' => ['date', 'php:Y-m-d H:i:s'],
                         ],
-                        'value',
+                        [
+                            'attribute' => 'value',
+                            'filter' => false, //不显示搜索框
+                        ],
                         [
                             'header' => '类型',
                             'attribute' => 'type',
@@ -136,6 +191,9 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                     ],
                 ]); ?>
                 <?= Html::a('删除', "javascript:void(0);", ['class' => 'btn btn-danger checkDelete']) ?>
+                <?= Html::linkButton(['recyle', 'pid' => $pointModel['id'], 'type' => $pointModel['type']], '<i class="fa fa-trash"></i> 回收站', [
+                    'style' => 'float:right',
+                ]); ?>
 
             </div>
         </div>

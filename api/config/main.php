@@ -87,6 +87,7 @@ return [
                         'v1/project/house', //房屋
                         'v1/project/house/view',
                         'v1/project/house/chart',   //房屋数据图表
+                        'v1/project/warn', //报警记录
                         'v1/project/point', //房屋监测点
                         'v1/project/point/view',
                         'v1/project/ground-map',   //分组

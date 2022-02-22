@@ -1,4 +1,5 @@
 <?php
+
 namespace backend\modules\console\huawei\controllers;
 
 use Yii;
@@ -9,7 +10,9 @@ use common\enums\StatusEnum;
 use common\models\console\iot\huawei\Device;
 use common\models\base\SearchModel;
 use common\models\console\iot\huawei\Directive;
+use common\models\console\iot\huawei\Product;
 use common\models\console\iot\huawei\Service;
+use common\models\console\iot\huawei\Value;
 use common\models\monitor\project\point\HuaweiMap;
 use common\models\sim\vlist\Card;
 use common\models\monitor\project\Point;
@@ -35,19 +38,21 @@ class DeviceController extends BaseController
      */
     public function actionIndex()
     {
+        Yii::$app->services->huaweiDevice->getUpdateLasttime();
+
         $searchModel = new SearchModel([
             'model' => $this->modelClass,
             'scenario' => 'default',
-            'defaultOrder' => [
-                'id' => SORT_DESC
-            ],
+            'partialMatchAttributes' => ['number', 'card'], // 模糊查询
+            'defaultOrder' => ['id' => SORT_DESC],
             'pageSize' => $this->pageSize
         ]);
 
         $dataProvider = $searchModel
             ->search(Yii::$app->request->queryParams);
+
         $dataProvider->query
-            ->andWhere(['>=', 'status', StatusEnum::DISABLED]);
+            ->andWhere(['>=', Device::tableName() . '.status', StatusEnum::DISABLED]);
 
         return $this->render($this->action->id, [
             'dataProvider' => $dataProvider,
@@ -94,8 +99,8 @@ class DeviceController extends BaseController
         // 设备使用情况
         $pointIds = HuaweiMap::getPointColumn($id);
         $pointModel = Point::find()
-            ->with(['house','newValue'])
-            ->where(['in','id',$pointIds])
+            ->with(['house', 'newValue'])
+            ->where(['in', 'id', $pointIds])
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
@@ -103,7 +108,7 @@ class DeviceController extends BaseController
         return $this->render($this->action->id, [
             'model' => $model,
             'pointModel'    => $pointModel
-            
+
         ]);
     }
 
@@ -121,7 +126,7 @@ class DeviceController extends BaseController
         global $_id;
         $_id = $id;
         $services = Service::find()
-            ->with(['attr','newAttr' =>function($queue){
+            ->with(['attr', 'newAttr' => function ($queue) {
                 global $_id;
                 $queue->andWhere(['pid' => $_id]);
             }])
@@ -130,7 +135,7 @@ class DeviceController extends BaseController
             ->asArray()
             ->all();
         foreach ($services as $key => $value) {
-            $services[$key]['newAttr']['value'] = json_decode($value['newAttr']['value'],true);        
+            $services[$key]['newAttr']['value'] = json_decode($value['newAttr']['value'], true);
         }
         return $this->render($this->action->id, [
             'id' => $id,
@@ -158,6 +163,16 @@ class DeviceController extends BaseController
         ]);
     }
 
+    public function actionDirectiveAll()
+    {
+        $request = Yii::$app->request;
+        $key = $request->post('data');
+        $content = $request->post('content');
+        Yii::$app->response->format =  yii\web\Response::FORMAT_JSON;
+
+        return Yii::$app->services->huaweiDirective->sendAll($key, $content);
+    }
+
     /**
      * 查看命令行
      *
@@ -167,28 +182,32 @@ class DeviceController extends BaseController
      * @throws \yii\base\ExitException
      */
     public function actionGetDirective($id, $directive_id)
-	{
-		$model = $this->findModel($id);
-		$request = Yii::$app->request;
-		$directiveModel = Directive::findOne($directive_id);
-		$formModel = new DirectiveForm();
+    {
+        $model = $this->findModel($id);
+        $request = Yii::$app->request;
+        $directiveModel = Directive::findOne($directive_id);
+        $formModel = new DirectiveForm();
 
         // 判断是否选择带参命令
         if (strpos($directiveModel->content, '@RES') && !$request->isPost) {
-			return $this->renderAjax($this->action->id, [
-				'model' => $formModel,
-				'id' => $model->id,
-				'directive_id' => $directiveModel->id,
-			]);
-		} 
-         // ajax 校验
+            return $this->renderAjax($this->action->id, [
+                'model' => $formModel,
+                'id' => $model->id,
+                'directive_id' => $directiveModel->id,
+            ]);
+        }
+        // ajax 校验
         $this->activeFormValidate($formModel);
-		if ($formModel->load($request->post())) {            
+        if ($formModel->load($request->post())) {
             return Yii::$app->services->huaweiDirective->send($id, $directive_id, $formModel->value)
                 ? $this->redirect(['directive', 'id' => $model->id])
-                : $this->message('下发失败!', $this->redirect(['directive', 'id' => $model->id]));
-		}		  
-	}   
+                : $this->message($this->getError($formModel), $this->redirect(['directive', 'id' => $model->id]));
+        }
+        // 没有携带参数
+        return Yii::$app->services->huaweiDirective->send($id, $directive_id)
+            ? $this->message('下发成功！', $this->redirect(['directive', 'id' => $model->id]), 'success')
+            : $this->message('下发失败！', $this->redirect(['directive', 'id' => $model->id]), 'error');
+    }
 
     /**
      * 回收站

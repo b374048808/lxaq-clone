@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-04-25 14:32:41
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-28 21:11:28
+ * @LastEditTime: 2022-02-16 16:32:10
  * @Description: 
  */
 
@@ -30,10 +30,26 @@ class DeviceService extends Service
     public function getOnLineCount()
     {
         return Value::find()
-            ->where(['>=','status',StatusEnum::ENABLED])
-            ->andWhere(['between','event_time',strtotime('-1 day'),time()])
+            ->where(['>=', 'status', StatusEnum::ENABLED])
+            ->andWhere(['between', 'event_time', strtotime('-1 day'), time()])
             ->groupBy('pid')
             ->count();
+    }
+
+    public function getUpdateLasttime()
+    {
+        $model = Device::find()
+            ->with(['newValue'])
+            ->andWhere(['status' => StatusEnum::ENABLED])
+            ->asArray()
+            ->all();
+        foreach ($model as $key => $value) {
+            if ($value['newValue']['event_time'] > $value['last_time']) {
+                Device::updateAll(['last_time' => $value['newValue']['event_time']], ['id' => $value['id']]);
+            }
+            # code...
+        }
+        return true;
     }
 
 
