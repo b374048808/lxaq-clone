@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-26 15:28:04
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-09-27 11:38:23
+ * @LastEditTime: 2022-03-09 10:06:11
  * @Description: 
  */
 
@@ -18,14 +18,19 @@ use common\enums\BaseEnum;
  */
 class SwitchEnum extends BaseEnum
 {
+
+    const ENABLED = 1;
+    const DISABLED = 0;
+    const DELETE = -1;
+
     /**
      * @return array
      */
     public static function getMap(): array
     {
         return [
-            0 => '关闭',
-            1 => '开启'
+            self::DISABLED => '关闭',
+            self::ENABLED => '开启'
         ];
     }
 }

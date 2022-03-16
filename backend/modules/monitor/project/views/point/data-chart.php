@@ -3,19 +3,18 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-08 11:36:29
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2022-02-21 15:21:43
+ * @LastEditTime: 2022-02-22 16:22:25
  * @Description: 
  */
 
 use common\enums\TimeUnitEnum;
 use common\helpers\Html;
-use common\models\monitor\project\House;
 use yii\widgets\ActiveForm;
 use kartik\daterange\DateRangePicker;
 
 $this->title = '数据曲线';
 $this->params['breadcrumbs'][] = ['label' => '房屋列表', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => House::getTitle($id), 'url' => ['view', 'id' => $id]];
+$this->params['breadcrumbs'][] = ['label' => $model['house']['title'], 'url' => ['view', 'id' => $model['pid']]];
 $this->params['breadcrumbs'][] = ['label' => $this->title];
 
 $addon = <<< HTML

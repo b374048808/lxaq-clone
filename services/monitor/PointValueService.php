@@ -41,10 +41,11 @@ class PointValueService extends Service
     public function setValue($pid, $data, $time = null)
     {
 
+        $warn = WarnEnum::SUCCESS;
         $pointModel = Point::findOne($pid);
         // 点位打开报警开关，判断标准报警和设置报警值报警，取最大值
         if ($pointModel->warn_switch) {
-            $warn = Yii::$app->services->pointWarn->getDefaultWarn($pid, $data);
+            $warn = Yii::$app->services->pointWarn->getDefaultWarn($pid, $data) ? WarnEnum::ONE : WarnEnum::SUCCESS;
             $warn2 = Yii::$app->services->ruleSimple->getRuleWarn($pid, $data);
             $warn = $warn2 > $warn ? $warn2 : $warn;
         }
@@ -62,7 +63,8 @@ class PointValueService extends Service
             $pointModel = Point::find()
                 ->with('house')
                 ->where(['id' => $pid])
-                ->asArray();
+                ->asArray()
+                ->one();
             $content = '监测房屋' . $pointModel['house']['title'] . '下的监测点' . $pointModel['title'] . '发生数据报警,数据为' . $data;
 
             Yii::$app->services->monitorNotify->createRemind(

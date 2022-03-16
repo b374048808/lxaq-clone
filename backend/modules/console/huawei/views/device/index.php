@@ -4,6 +4,7 @@ use common\enums\device\SwitchEnum;
 use common\helpers\BaseHtml;
 use common\helpers\Html;
 use common\helpers\Url;
+use common\models\console\iot\huawei\Device;
 use yii\grid\GridView;
 use common\models\console\iot\huawei\Product;
 
@@ -78,15 +79,22 @@ $this->params['breadcrumbs'][] = ['label' => $this->title, 'url' => ['index']];
                             'format' => 'raw',
                         ],
                         [
+                            'header' => '关联建筑',
+                            'value' => function ($model) {
+                                $point = Device::House($model['id']);
+                                $res = '';
+                                foreach ($point as $key => $value) {
+                                    $res .= Html::a($value['house']['title'], ['/monitor-project/house/view', 'id' => $value['house']['id']], [
+                                        'class' => 'openContab'
+                                    ]) . ' ';
+                                }
+                                return $res;
+                            },
+                            'format' => 'html',
+                        ],
+                        [
                             'attribute' => 'last_time',
                             'format' => ['date', 'php:Y-m-d H:i:s'],
-                        ],
-                        'card',
-                        [
-
-                            'attribute' => 'over_time',
-                            'format' => ['date', 'php:Y-m-d'],
-                            'filter' => false,
                         ],
                         [
                             'header' => "操作",
@@ -213,7 +221,7 @@ $js = <<<JS
                 dataType:"json",
                 success:function(e){
                     console.log(e.message);
-                    e?console.log(e):alert('更新失败!');
+                    e?location.reload():alert('更新失败!');
                 }
             })            
         }else{

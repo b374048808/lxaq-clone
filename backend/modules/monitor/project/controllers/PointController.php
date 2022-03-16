@@ -14,6 +14,7 @@ use common\models\base\SearchModel;
 use common\helpers\ResultHelper;
 use common\models\monitor\project\log\WarnLog;
 use common\enums\WarnEnum;
+use common\models\console\iot\huawei\Device;
 use common\models\monitor\project\point\HuaweiMap;
 use common\models\monitor\project\point\Value;
 
@@ -77,7 +78,6 @@ class PointController extends BaseController
         $to_date = $request->get('to_date', null);
         $type = $request->get('type', null);
         $warn = $request->get('warn', null);
-        $pid = $request->get('pid', null);
 
         $searchModel = new SearchModel([
             'model' => Value::class,
@@ -93,9 +93,9 @@ class PointController extends BaseController
         $dataProvider->query
             // 转化时间戳，结尾添加1天取值到选取日期
             ->andFilterWhere(['between', 'event_time', $from_date ? strtotime($from_date) : null, $to_date ? strtotime('+1 day', strtotime($to_date)) : null])
-            ->andFilterWhere(['pid' => $pid]);
+            ->andWhere(['pid' => $id]);
 
-        // p(Yii::$app->services->pointWarn->getDefaultWarn($id, 0));
+        // p($model['deviceMap']);
 
         return $this->render($this->action->id, [
             'model' => $model,
@@ -105,6 +105,39 @@ class PointController extends BaseController
             'warn'  => $warn,
             'from_date' => $from_date,
             'to_date'   => $to_date,
+        ]);
+    }
+
+
+
+    /**
+     * 绑定设备
+     * 
+     * @param number|int
+     * @return {*}
+     * @throws: 
+     */
+    public function actionAjaxDevice()
+    {
+        $request = Yii::$app->request;
+        $id = Yii::$app->request->get('id', null);
+
+        if (empty($id) || empty(($model = HuaweiMap::findOne($id)))) {
+            $model = new HuaweiMap();
+            $model = $model->loadDefaultValues();
+        }
+
+        $model->point_id = $request->get('point_id', '') ?: $model->point_id;
+        if ($model->load(Yii::$app->request->post())) {
+            $model->install_time = strtotime($model->install_time);
+            return $model->save()
+                ? $this->redirect(Yii::$app->request->referrer)
+                : $this->message($this->getError($model), $this->redirect(Yii::$app->request->referrer), 'error');
+        }
+
+        return $this->renderAjax($this->action->id, [
+            'model' => $model,
+            'devices' => Device::getDropDown()
         ]);
     }
 
@@ -140,6 +173,7 @@ class PointController extends BaseController
     public function actionDataChart($id)
     {
         $request = Yii::$app->request;
+        $model = $this->findModel($id);
         $unit = TimeUnitEnum::getUnit($request->get('unit', TimeUnitEnum::DAY));    //天或小时
         $from_date = $request->get('from_date', date('Y-m-d', strtotime('-1 month')));  //开始时间
         $to_date = $request->get('to_date', date('Y-m-d')); //结束时间
@@ -174,7 +208,7 @@ class PointController extends BaseController
         }
 
         return $this->render($this->action->id, [
-            'id' => $id,
+            'model' => $model,
             'info' => $info,
             'from_date' => $from_date,
             'to_date' => $to_date,

@@ -385,11 +385,22 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                             <td><?= SwitchEnum::getValue($value['warn_switch']) ?></td>
                             <td>
                                 <?= Html::a($value['device']['number'], ['/console-huawei/device/view', 'id' => $value['device']['id']]) ?>
-                                <?= Html::linkButton(['ajax-device', 'point_id' => $value['id'], 'id' => $value['deviceMap']['id']], '<i class="icon ion-link"></i> ' . '绑定设备', [
-                                    'class' => 'btn btn-info btn-xs',
-                                    'data-toggle' => 'modal',
-                                    'data-target' => '#ajaxModalLg',
-                                ]); ?>
+                                <?php if ($value['device']['id']) : ?>
+                                    <?= Html::linkButton(['/monitor-project/point/ajax-device', 'id' => $value['deviceMap']['id']], '<i class="icon ion-link"></i> ' . '更改设备', [
+                                        'class' => 'btn btn-info btn-xs',
+                                        'data-toggle' => 'modal',
+                                        'data-target' => '#ajaxModalLg',
+                                    ]); ?>
+                                    <?= BaseHtml::delete(['/monitor-project/huawei-device/delete', 'id' => $value['deviceMap']['id']], '取消绑定', [
+                                        'class' => 'btn btn-danger btn-xs'
+                                    ]); ?>
+                                <?php else : ?>
+                                    <?= Html::linkButton(['/monitor-project/point/ajax-device', 'point_id' => $value['id']], '<i class="icon ion-link"></i> ' . '绑定设备', [
+                                        'class' => 'btn btn-info btn-xs',
+                                        'data-toggle' => 'modal',
+                                        'data-target' => '#ajaxModalLg',
+                                    ]); ?>
+                                <?php endif; ?>
                             </td>
                             <td><?= $value['newValue']['event_time'] ? date('Y-m-d H:i', $value['newValue']['event_time']) : '' ?></td>
                             <td><?= ValueTypeEnum::getValue($value['newValue']['type']) ?></td>

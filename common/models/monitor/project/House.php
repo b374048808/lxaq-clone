@@ -5,6 +5,7 @@ namespace common\models\monitor\project;
 use Yii;
 use common\enums\StatusEnum;
 use common\helpers\ArrayHelper;
+use common\models\monitor\project\point\HuaweiMap;
 use common\models\monitor\project\point\Value;
 use common\models\monitor\project\rule\Item;
 use common\models\worker\Worker;
@@ -88,15 +89,15 @@ class House extends \common\models\base\BaseModel
     public function rules()
     {
         return [
-            ['title','required'],
+            ['title', 'required'],
             [['entry_id', 'room', 'province_id', 'city_id', 'area_id', 'item_id', 'year', 'nature', 'layer', 'floor', 'wall', 'basement', 'beam', 'column', 'sort', 'status', 'created_at', 'updated_at'], 'integer'],
             [['area', 'lng', 'lat', 'height', 'width', 'length'], 'number'],
             [['hint_cover', 'layout_cover', 'plan_cover', 'angle_warn', 'settling_warn', 'move_warn', 'cracks_warn', 'angle_cover', 'move_cover', 'cracks_cover', 'settling_cover'], 'safe'],
-            [['title', 'owner', 'design', 'supervision', 'prospect', 'roadwork', 'side', 'property_nature', 'base_form', 'use_change', 'disasters', 'detect_scope', 'property_card', 'land_card','roof','type'], 'string', 'max' => 50],
+            [['title', 'owner', 'design', 'supervision', 'prospect', 'roadwork', 'side', 'property_nature', 'base_form', 'use_change', 'disasters', 'detect_scope', 'property_card', 'land_card', 'roof', 'type'], 'string', 'max' => 50],
             [['cover', 'address'], 'string', 'max' => 100],
             [['mobile'], 'string', 'max' => 20],
             [['news'], 'string', 'max' => 10],
-            [['description','history'], 'string', 'max' => 140],
+            [['description', 'history'], 'string', 'max' => 140],
             ['lnglat', 'safe']
         ];
     }
@@ -175,7 +176,7 @@ class House extends \common\models\base\BaseModel
     public function beforeSave($insert)
     {
         if ($this->isNewRecord) {
-            $this->entry_id = $this->entry_id?:Yii::$app->user->id;
+            $this->entry_id = $this->entry_id ?: Yii::$app->user->id;
         }
         if (!empty($this->lnglat)) {
 
@@ -187,28 +188,37 @@ class House extends \common\models\base\BaseModel
         return parent::beforeSave($insert);
     }
 
-    public function getSimple(){
-        return $this->hasMany(Item::class,['pid' => 'id'])
+    public function getSimple()
+    {
+        return $this->hasMany(Item::class, ['pid' => 'id'])
             ->andWhere(['status' => StatusEnum::ENABLED]);
     }
 
     public function getWarn()
     {
-    	return $this->hasOne(Point::class,['pid' => 'id'])
-            ->select(['warn','pid'])
-    	    ->andWhere(['status' => StatusEnum::ENABLED])
+        return $this->hasOne(Point::class, ['pid' => 'id'])
+            ->select(['warn', 'pid'])
+            ->andWhere(['status' => StatusEnum::ENABLED])
             ->orderBy('warn desc');
     }
 
-    public function getPoint(){
-        return $this->hasMany(Point::class,['pid' => 'id']);
+    public function getPoint()
+    {
+        return $this->hasMany(Point::class, ['pid' => 'id']);
+    }
+
+
+    public function getDeviceMap()
+    {
+        return $this->hasMany(HuaweiMap::class, ['point_id' => 'id'])
+            ->viaTable(Point::tableName(), ['pid' => 'id']);
     }
 
     /**
      * @param {*} $id
      * @return {*}
      * @throws:  返回房屋户主
-     */    
+     */
     public static function getTitle($id)
     {
         $model = self::find()
@@ -218,8 +228,9 @@ class House extends \common\models\base\BaseModel
         return $model['title'];
     }
 
-    public function getMember(){
-        return $this->hasOne(Worker::class,['id' => 'entry_id']);
+    public function getMember()
+    {
+        return $this->hasOne(Worker::class, ['id' => 'entry_id']);
     }
 
     /**
@@ -228,15 +239,16 @@ class House extends \common\models\base\BaseModel
      * @param n*o $id
      * @return array
      * @throws: 
-     */    
-    public static function getPointColumn($id, $type = null){
+     */
+    public static function getPointColumn($id, $type = null)
+    {
         $pointModel = Point::find()
             ->where(['pid' => $id])
             ->andFilterWhere(['type' => $type])
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
-        return $pointModel?ArrayHelper::getColumn($pointModel,'id', $keepKeys = true):[];
+        return $pointModel ? ArrayHelper::getColumn($pointModel, 'id', $keepKeys = true) : [];
     }
 
     /**
@@ -245,15 +257,16 @@ class House extends \common\models\base\BaseModel
      * @param n*o $id
      * @return array
      * @throws: 
-     */    
-    public static function getPointMap($id, $type = null){
+     */
+    public static function getPointMap($id, $type = null)
+    {
         $pointModel = Point::find()
             ->where(['pid' => $id])
             ->andFilterWhere(['type' => $type])
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
-        return $pointModel?ArrayHelper::map($pointModel,'title','title'):[];
+        return $pointModel ? ArrayHelper::map($pointModel, 'title', 'title') : [];
     }
 
     /**
@@ -290,13 +303,13 @@ class House extends \common\models\base\BaseModel
             ];
             $model = new self;
             foreach ($data as $key => $value) {
-                $array_ab=array_combine($field,$value);
+                $array_ab = array_combine($field, $value);
                 $_model = clone $model;
-                if ($_model->load($array_ab,'') && $_model->save()) {
+                if ($_model->load($array_ab, '') && $_model->save()) {
                     $i++;
                 }
             }
-            
+
             // 批量插入数据
             // Yii::$app->db->createCommand()->batchInsert(self::tableName(), $field, $data)->execute();
 
@@ -305,4 +318,3 @@ class House extends \common\models\base\BaseModel
         return $i;
     }
 }
-

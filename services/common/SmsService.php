@@ -15,6 +15,7 @@ use common\helpers\ArrayHelper;
 use common\enums\MessageLevelEnum;
 use common\enums\SubscriptionActionEnum;
 use common\enums\SubscriptionReasonEnum;
+use common\models\common\WarnLog;
 use Overtrue\EasySms\EasySms;
 
 /**
@@ -98,7 +99,7 @@ class SmsService extends Service
 
         return $this->realSend($mobile, $code, $usage, $member_id = 0, $ip);
     }
-    
+
 
     /**
      * 真实发送短信
@@ -178,7 +179,7 @@ class SmsService extends Service
 
 
     // 预警通知短信
-    
+
 
     /**
      * @param $type
@@ -231,5 +232,94 @@ class SmsService extends Service
         $log->save();
 
         return $log;
+    }
+
+    /**
+     * @param array $data
+     * @return SmsLog
+     */
+    protected function saveWarnLog($data = [])
+    {
+        $log = new WarnLog();
+        $log = $log->loadDefaultValues();
+        $log->attributes = $data;
+        $log->save();
+
+        return $log;
+    }
+
+
+    /**
+     * 发送短信
+     *
+     * ```php
+     *       Yii::$app->services->sms->send($mobile, $code, $usage, $member_id)
+     * ```
+     *
+     * @param int $mobile 手机号码
+     * @param int $code 验证码
+     * @param string $usage 用途
+     * @param int $member_id 用户ID
+     * @return string|null
+     * @throws UnprocessableEntityHttpException
+     */
+    public function warnSend($number)
+    {
+        foreach (Yii::$app->params['WarnMobiles']  as $key => $value) {
+            $this->warnRealSend($value, $number);
+        }
+
+        return true;
+    }
+
+
+    // 设备报警发送通知
+    public function warnRealSend($mobile, $number)
+    {
+        $template = Yii::$app->debris->backendConfig('sms_aliyun_template');
+        !empty($template) && $template = ArrayHelper::map(Json::decode($template), 'group', 'template');
+        $templateID = $template['device_danger'] ?? '';
+        try {
+
+            $easySms = new EasySms($this->config);
+            // 设置的手机号码和对应的设备编号
+            $result = $easySms->send($mobile, [
+                'template' => $templateID,
+                'data' => [
+                    'number' => $number,
+                ],
+            ]);
+            // 设备报警记录
+            $this->saveWarnLog([
+                'mobile' => $mobile,
+                'number' => $number,
+                'error_code' => 200,
+                'error_msg' => 'ok',
+                'error_data' => Json::encode($result),
+            ]);
+        } catch (NotFoundHttpException $e) {
+            throw new UnprocessableEntityHttpException($e->getMessage());
+        } catch (\Exception $e) {
+            $errorMessage = [];
+            $exceptions = $e->getExceptions();
+            $gateways = $this->config['default']['gateways'];
+
+            foreach ($gateways as $gateway) {
+                if (isset($exceptions[$gateway])) {
+                    $errorMessage[$gateway] = $exceptions[$gateway]->getMessage();
+                }
+            }
+
+            $this->saveWarnLog([
+                'mobile' => $mobile,
+                'number' => $number,
+                'error_code' => 422,
+                'error_msg' => '发送失败',
+                'error_data' => Json::encode($errorMessage),
+            ]);
+
+
+            throw new UnprocessableEntityHttpException($mobile, $number);
+        }
     }
 }

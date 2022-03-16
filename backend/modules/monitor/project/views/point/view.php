@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-29 11:36:17
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2022-02-21 16:59:11
+ * @LastEditTime: 2022-03-10 15:12:36
  * @Description: 
  */
 
@@ -113,7 +113,7 @@ HTML;
                 <h3 class="box-title">绑定设备</h3>
 
                 <div class="box-tools">
-                    <?= Html::linkButton(['ajax-device', 'point_id' => $model['id'], 'id' => $value['deviceMap']['id']], '<i class="icon ion-link"></i> ' . ($value['device']['number'] ?: '绑定设备'), [
+                    <?= Html::linkButton(['ajax-device', 'point_id' => $model['id'], 'id' => $model['deviceMap']['id']], '<i class="icon ion-link"></i> 绑定设备', [
                         'class' => 'btn btn-info btn-xs',
                         'data-toggle' => 'modal',
                         'data-target' => '#ajaxModalLg',

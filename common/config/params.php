@@ -30,8 +30,8 @@ return [
             'takeOverUrl' => '', // 配置后，接管所有的上传地址
             'drive' => 'local', // 默认本地 可修改 qiniu/oss/cos 上传
             'md5Verify' => true, // md5 校验
-            'maxSize' => 1024 * 1024 * 10,// 图片最大上传大小,默认10M
-            'extensions' => ["png", "jpg", "jpeg", "gif", "bmp"],// 可上传图片后缀不填写即为不限
+            'maxSize' => 1024 * 1024 * 10, // 图片最大上传大小,默认10M
+            'extensions' => ["png", "jpg", "jpeg", "gif", "bmp"], // 可上传图片后缀不填写即为不限
             'path' => 'images/', // 图片创建路径
             'subName' => 'Y/m/d', // 图片上传子目录规则
             'prefix' => 'image_', // 图片名称前缀
@@ -51,11 +51,11 @@ return [
             'takeOverUrl' => '', // 配置后，接管所有的上传地址
             'drive' => 'local', // 默认本地 可修改 qiniu/oss/cos 上传
             'md5Verify' => true, // md5 校验
-            'maxSize' => 1024 * 1024 * 50,// 最大上传大小,默认50M
-            'extensions' => ['mp4', 'mp3'],// 可上传文件后缀不填写即为不限
-            'path' => 'videos/',// 创建路径
-            'subName' => 'Y/m/d',// 上传子目录规则
-            'prefix' => 'video_',// 名称前缀
+            'maxSize' => 1024 * 1024 * 50, // 最大上传大小,默认50M
+            'extensions' => ['mp4', 'mp3'], // 可上传文件后缀不填写即为不限
+            'path' => 'videos/', // 创建路径
+            'subName' => 'Y/m/d', // 上传子目录规则
+            'prefix' => 'video_', // 名称前缀
             'mimeTypes' => 'video/*', // 媒体类型
         ],
         // 语音
@@ -65,11 +65,11 @@ return [
             'takeOverUrl' => '', // 配置后，接管所有的上传地址
             'drive' => 'local', // 默认本地 可修改 qiniu/oss/cos 上传
             'md5Verify' => true, // md5 校验
-            'maxSize' => 1024 * 1024 * 30,// 最大上传大小,默认30M
-            'extensions' => ['amr', 'mp3'],// 可上传文件后缀不填写即为不限
-            'path' => 'voice/',// 创建路径
-            'subName' => 'Y/m/d',// 上传子目录规则
-            'prefix' => 'voice_',// 名称前缀
+            'maxSize' => 1024 * 1024 * 30, // 最大上传大小,默认30M
+            'extensions' => ['amr', 'mp3'], // 可上传文件后缀不填写即为不限
+            'path' => 'voice/', // 创建路径
+            'subName' => 'Y/m/d', // 上传子目录规则
+            'prefix' => 'voice_', // 名称前缀
             'mimeTypes' => 'image/*', // 媒体类型
         ],
         // 文件
@@ -79,23 +79,24 @@ return [
             'takeOverUrl' => '', // 配置后，接管所有的上传地址
             'drive' => 'local', // 默认本地 可修改 qiniu/oss/cos 上传
             'md5Verify' => true, // md5 校验
-            'maxSize' => 1024 * 1024 * 150,// 最大上传大小,默认150M
-            'extensions' => [],// 可上传文件后缀不填写即为不限
-            'path' => 'files/',// 创建路径
-            'subName' => 'Y/m/d',// 上传子目录规则
-            'prefix' => 'file_',// 名称前缀
+            'maxSize' => 1024 * 1024 * 150, // 最大上传大小,默认150M
+            'extensions' => [], // 可上传文件后缀不填写即为不限
+            'path' => 'files/', // 创建路径
+            'subName' => 'Y/m/d', // 上传子目录规则
+            'prefix' => 'file_', // 名称前缀
             'mimeTypes' => '*', // 媒体类型
             'blacklist' => [ // 文件后缀黑名单
                 'php', 'php5', 'php4', 'php3', 'php2', 'php1',
                 'java', 'asp', 'jsp', 'jspa', 'javac',
-                'py', 'pl', 'rb', 'sh', 'ini', 'svg', 'html', 'jtml','phtml','pht', 'js'
+                'py', 'pl', 'rb', 'sh', 'ini', 'svg', 'html', 'jtml', 'phtml', 'pht', 'js'
             ],
         ],
         // 缩略图
         'thumb' => [
-            'path' => 'thumb/',// 图片创建路径
+            'path' => 'thumb/', // 图片创建路径
         ],
     ],
+
 
     /** ------ 微信配置 ------ **/
 
@@ -153,4 +154,10 @@ return [
     /** ------ 374048808阿里物联网------------------- **/
     'AccessKeyId'   => 'LTAI4FdTxTq6dod1WjWMAxbp',
     'AccessKeySecret' => '0fXsodw45gUHuK4jpqOcKlh7skBPa4',
+
+    // 设备报警角度
+    'WarnAngle' => '30',
+    'WarnMobiles' => [
+        '18257759115',
+    ]
 ];

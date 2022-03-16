@@ -3,7 +3,7 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-03-26 11:14:00
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2021-06-29 16:17:02
+ * @LastEditTime: 2022-03-10 15:09:42
  * @Description: 
  */
 
@@ -14,6 +14,7 @@ use Yii;
 use common\models\console\iot\huawei\Device;
 use common\models\monitor\project\Point;
 use common\helpers\ArrayHelper;
+use common\models\monitor\project\House;
 
 /**
  * This is the model class for table "rf_lx_monitor_point_device_huawei_map".
@@ -44,9 +45,9 @@ class HuaweiMap extends \common\models\base\BaseModel
     {
         return [
             [['device_id', 'point_id'], 'required'],
-            [['height', 'lng', 'lat'],'number'],
-            [['device_id', 'axis','point_id','news', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['covers','install_time', 'lnglat'],'safe'],
+            [['height', 'lng', 'lat'], 'number'],
+            [['device_id', 'axis', 'point_id', 'is_up', 'status', 'created_at', 'updated_at'], 'integer'],
+            [['covers', 'install_time', 'lnglat'], 'safe'],
             [['location'], 'string', 'max' => 100],
         ];
     }
@@ -60,7 +61,7 @@ class HuaweiMap extends \common\models\base\BaseModel
             'id' => 'ID',
             'device_id' => '设备',
             'point_id' => '监测点位',
-            'news' => '朝向',
+            'is_up' => '朝向',
             'axis' => '坐标',
             'covers' => '图像',
             'lng' => '经度',
@@ -91,22 +92,44 @@ class HuaweiMap extends \common\models\base\BaseModel
         return parent::beforeSave($insert);
     }
 
-    public function getDevice(){
-        return $this->hasOne(Device::class,['id' => 'device_id']);
+    /**
+     * @param {*}
+     * @return {*}
+     * @throws: 
+     */
+    public function getDevice()
+    {
+        return $this->hasOne(Device::class, ['id' => 'device_id']);
     }
 
-    public function getPoint(){
-        return $this->hasOne(Point::class,['id' => 'point_id']);
+    public function getPoint()
+    {
+        return $this->hasOne(Point::class, ['id' => 'point_id']);
+    }
+
+    public function getHouse()
+    {
+        return $this->hasOne(House::class, ['id' => 'pid'])
+            ->viaTable(Point::tableName(), ['id' => 'point_id']);
+    }
+
+    public function getValue()
+    {
+        return $this->hasOne(Value::class, ['pid' => 'id'])
+            ->viaTable(Point::tableName(), ['id' => 'point_id'])
+            ->orderBy('event_time desc')
+            ->andWhere(['status' => StatusEnum::ENABLED]);
     }
 
 
-    public static function getPointColumn($device_id){
+    public static function getPointColumn($device_id)
+    {
         $model = self::find()
             ->where(['device_id' => $device_id])
             ->andWhere(['status' => StatusEnum::ENABLED])
             ->asArray()
             ->all();
-        return ArrayHelper::getColumn($model,'point_id', $keepKeys = true);
+        return ArrayHelper::getColumn($model, 'point_id', $keepKeys = true);
     }
 
 
@@ -118,5 +141,4 @@ class HuaweiMap extends \common\models\base\BaseModel
             ->groupBy('point_id')
             ->count();
     }
-
 }

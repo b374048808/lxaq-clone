@@ -3,18 +3,18 @@
  * @Author: Xjie<374048808@qq.com>
  * @Date: 2021-05-07 15:18:06
  * @LastEditors: Xjie<374048808@qq.com>
- * @LastEditTime: 2022-03-10 16:26:51
+ * @LastEditTime: 2022-02-25 13:55:12
  * @Description: 
  */
 
 use common\enums\device\SwitchEnum;
-use common\enums\NewsEnum;
 use common\enums\WarnEnum;
+use common\helpers\BaseHtml;
 use common\helpers\Html;
 use yii\widgets\LinkPager;
 use common\models\monitor\project\House;
 
-$this->title = '点位监测列表';
+$this->title = '设备监测列表';
 $this->params['breadcrumbs'][] = ['label' => $this->title];
 ?>
 
@@ -41,12 +41,15 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th>#</th>
                             <th>房屋列表</th>
-                            <th>点位名称</th>
-                            <th>朝向</th>
+                            <th>动态点位</th>
+                            <th>点位状态</th>
+                            <th>报警开关</th>
                             <th>最新数据</th>
                             <th>更新时间</th>
                             <th>关联设备编号</th>
+                            <th>设备开关</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -56,26 +59,28 @@ $this->params['breadcrumbs'][] = ['label' => $this->title];
                         ?>
                             <tr>
                                 <td rowspan="<?= count($model) + 1 ?>">
+                                    <?= $i++  ?></td>
+                                <td rowspan="<?= count($model) + 1 ?>">
                                     <?= Html::a(House::getTitle($key), ['/monitor-project/house/view', 'id' => $key], [
                                         'class' => 'openContab'
                                     ]) ?>
                                 </td>
                             </tr>
                             <?php foreach ($model as $value) { ?>
-                                <tr data-key="<?= $value['id'] ?>">
+                                <tr>
                                     <td><?= Html::a($value['point']['title'], ['/monitor-project/point/view', 'id' => $value['point_id']], [
                                             'class' => 'openContab'
-                                        ]) ?> <?= WarnEnum::$spanlistExplain[Yii::$app->services->pointWarn->getPointWarn($value['point_id'])] ?></td>
-                                    <td><?= NewsEnum::getValue($value['point']['news']) ?></td>
+                                        ]) ?> </td>
+                                    <td><?= WarnEnum::$spanlistExplain[Yii::$app->services->pointWarn->getPointWarn($value['point_id'])] ?></td>
+                                    <td><?= SwitchEnum::getValue($value['point']['warn_switch']) ?></td>
                                     <td><?= $value['value']['value'] ?></td>
                                     <td><?= $value['value']['event_time'] ? date('Y-m-d H:i:s', $value['value']['event_time']) : '' ?></td>
-                                    <td><?= Html::a('<span class="label label-' . ($value['device']['switch'] ? 'success' : 'danger') . '">' . $value['device']['number'] . '</span>', ['/console-huawei/device/view', 'id' => $value['device_id']], [
+                                    <td><?= Html::a($value['device']['number'], ['/console-huawei/device/view', 'id' => $value['device_id']], [
                                             'class' => 'openContab'
-                                        ]) ?> </td>
-                                    <td></td>
+                                        ]) ?></td>
+                                    <td><?= SwitchEnum::getValue($value['device']['switch']) ?></td>
                                     <td>
-                                        <?= Html::status($value['status'] ?: 0) ?>
-                                        <?= Html::delete(['delete', 'id' => $value['id']], '删除', []) ?>
+                                        <?= BaseHtml::delete(['delete', 'id' => $value['id']]) ?>
                                     </td>
                                 </tr>
                             <?php } ?>

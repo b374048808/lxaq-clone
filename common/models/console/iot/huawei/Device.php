@@ -170,6 +170,8 @@ class Device extends \common\models\base\BaseModel
     }
 
 
+
+
     /**
      * 关联监测点
      *
@@ -179,5 +181,22 @@ class Device extends \common\models\base\BaseModel
     {
         return $this->hasOne(Point::class, ['id' => 'point_id'])
             ->viaTable(HuaweiMap::tableName(), ['device_id' => 'id']);
+    }
+
+    public static function House($id)
+    {
+        $model = HuaweiMap::find()
+            ->where(['device_id' => $id])
+            ->asArray()
+            ->all();
+        $pointId = ArrayHelper::getColumn($model, 'point_id', $keepKeys = true);
+        $pointModel = Point::find()
+            ->with('house')
+            ->where(['in', 'id', $pointId])
+            ->groupBy('pid')
+            ->asArray()
+            ->all();
+
+        return $pointModel;
     }
 }

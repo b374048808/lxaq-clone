@@ -10,9 +10,7 @@ use common\enums\StatusEnum;
 use common\models\console\iot\huawei\Device;
 use common\models\base\SearchModel;
 use common\models\console\iot\huawei\Directive;
-use common\models\console\iot\huawei\Product;
 use common\models\console\iot\huawei\Service;
-use common\models\console\iot\huawei\Value;
 use common\models\monitor\project\point\HuaweiMap;
 use common\models\sim\vlist\Card;
 use common\models\monitor\project\Point;
@@ -38,7 +36,6 @@ class DeviceController extends BaseController
      */
     public function actionIndex()
     {
-        Yii::$app->services->huaweiDevice->getUpdateLasttime();
 
         $searchModel = new SearchModel([
             'model' => $this->modelClass,
@@ -52,7 +49,7 @@ class DeviceController extends BaseController
             ->search(Yii::$app->request->queryParams);
 
         $dataProvider->query
-            ->andWhere(['>=', Device::tableName() . '.status', StatusEnum::DISABLED]);
+            ->andWhere(['>=', 'status', StatusEnum::DISABLED]);
 
         return $this->render($this->action->id, [
             'dataProvider' => $dataProvider,
@@ -75,9 +72,11 @@ class DeviceController extends BaseController
         // ajax 校验
         $this->activeFormValidate($model);
         if ($model->load($request->post())) {
+            if ($model->over_time)
+                $model->over_time = strtotime($model->over_time);
             return $model->save()
-                ? $this->redirect(['index'])
-                : $this->message($this->getError($model), $this->redirect(['index']), 'error');
+                ? $this->redirect([Yii::$app->request->referrer])
+                : $this->message($this->getError($model), $this->redirect(Yii::$app->request->referrer), 'error');
         }
         return $this->renderAjax('ajax-edit', [
             'model' => $model,
